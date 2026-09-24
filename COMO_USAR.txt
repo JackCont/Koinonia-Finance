@@ -1,0 +1,62 @@
+COMO USAR O APLICATIVO
+======================
+
+PASSO 1: Verificar Python
+-------------------------
+Abra o Prompt de Comando (cmd) e digite:
+    python --version
+
+Se aparecer "Python 3.x.x", está OK!
+Se der erro, instale em: https://python.org
+IMPORTANTE: Marque "Add Python to PATH" durante instalação
+
+
+PASSO 2: Iniciar o Aplicativo
+------------------------------
+Opção A (Mais Fácil):
+    Clique duas vezes no arquivo: INICIAR.bat
+
+Opção B (Manual):
+    1. Abra o Prompt de Comando (cmd)
+    2. Navegue até a pasta do projeto
+    3. Digite: python iniciar.py
+    4. Pressione Enter
+
+Opção C (Visual):
+    Abra o arquivo INICIAR.html no navegador
+
+
+PASSO 3: Acessar o Aplicativo
+------------------------------
+O navegador abrirá automaticamente em:
+    http://localhost:8080
+
+Se não abrir sozinho, abra o navegador e acesse o endereço acima.
+
+
+LOGIN
+-----
+Usuário: admin
+Senha: admin123
+
+
+PARA FECHAR
+-----------
+Feche a janela preta do servidor ou pressione Ctrl+C nela
+
+
+SE NÃO FUNCIONAR
+----------------
+1. Python não encontrado?
+   - Instale em: https://python.org
+   - Marque "Add Python to PATH"
+   - Reinicie o computador
+
+2. Servidor não inicia?
+   - Verifique se a porta 8080 está livre
+   - Tente o método manual: python iniciar.py
+
+3. Página em branco?
+   - Aguarde alguns segundos
+   - Recarregue a página (F5)
+   - Verifique se o servidor está rodando

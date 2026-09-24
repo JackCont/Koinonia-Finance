@@ -1,65 +1,57 @@
 # Tesouraria IEAD
 
-## How to Use
+Sistema de gestão financeira para igrejas.
 
-### Windows:
-**Double-click the file: `ABRIR.bat`**
+## Como Usar
 
-### Linux/Mac:
-```bash
-chmod +x ABRIR.sh
-./ABRIR.sh
-```
+### Método 1 (Recomendado):
+1. Clique duas vezes em **INICIAR.bat**
+2. O navegador abrirá automaticamente
+3. Login: `admin` / Senha: `admin123`
 
-**Done!** The app will open automatically in your browser.
+### Método 2 (Manual):
+1. Abra o Prompt de Comando (cmd)
+2. Navegue até a pasta do projeto
+3. Execute: `python iniciar.py`
+4. Abra o navegador em: http://localhost:8080
 
----
+### Método 3 (Visual):
+1. Abra o arquivo **INICIAR.html** no navegador
+2. Siga as instruções na tela
 
-## Requirements
+## Requisitos
 
-- **Python 3** (already installed on most systems)
-  - If not: https://python.org
+- **Python 3** instalado
+  - Baixe em: https://python.org
+  - Durante instalação, marque: **"Add Python to PATH"**
 
----
+## Se Não Funcionar
 
-## Important
+### Python não encontrado?
+1. Verifique: abra o cmd e digite `python --version`
+2. Se der erro, instale o Python
+3. **Importante:** marque "Add Python to PATH" durante instalação
+4. Reinicie o computador
 
-- **DO NOT open `index.html` directly** - it won't work
-- Always use `ABRIR.bat` (Windows) or `ABRIR.sh` (Linux/Mac)
-- Keep the black window open while using the app
-- To close: press `Ctrl+C` in the black window or close it
+### Servidor não inicia?
+1. Verifique se a porta 8080 não está em uso
+2. Tente o método manual: `python iniciar.py`
+3. Verifique se está na pasta correta do projeto
 
----
+## Login Padrão
 
-## First Access
+- **Usuário:** admin
+- **Senha:** admin123
 
-Default credentials (change after first login):
-- **User:** `admin`
-- **Password:** `admin123`
-
----
+⚠️ Altere a senha após o primeiro acesso!
 
 ## Backup
 
-Data is saved in the browser. Make regular backups:
-1. Go to "Import/Export"
-2. Click "Generate Backup"
-3. Save the file in a safe place
+Os dados são salvos no navegador. Faça backup regularmente:
+1. Acesse "Importar/Exportar"
+2. Clique em "Gerar Backup"
+3. Salve o arquivo em local seguro
 
----
+## Versão
 
-## Problems?
-
-**Python not found?**
-- Windows: Download at https://python.org
-- Linux: `sudo apt install python3`
-- Mac: `brew install python3`
-
-**App doesn't open?**
-- Check if the black window is open
-- Wait a few seconds
-- Try accessing manually: http://localhost:8080
-
----
-
-**Version 2.0.0**
+2.0.0 - Desenvolvido para IEAD
