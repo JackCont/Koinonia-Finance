@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⛪ Gestão de Tesouraria - IEAD</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+        
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        h1 {
+            color: #2d3748;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .instructions {
+            background: #f7fafc;
+            border-left: 4px solid #667eea;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: left;
+            margin: 30px 0;
+        }
+        
+        .instructions h2 {
+            color: #2d3748;
+            font-size: 20px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        
+        .step-content {
+            flex: 1;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .step-desc {
+            color: #718096;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 18px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 18px;
+            margin: 10px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .button-secondary {
+            background: #e2e8f0;
+            color: #2d3748;
+        }
+        
+        .warning {
+            background: #fff5e6;
+            border-left: 4px solid #f6ad55;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+            color: #744210;
+            font-size: 14px;
+        }
+        
+        .success {
+            background: #f0fff4;
+            border-left: 4px solid #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+            color: #22543d;
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #a0aec0;
+            font-size: 12px;
+        }
+        
+        .os-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">⛪</div>
+        <h1>Gestão de Tesouraria - IEAD</h1>
+        <p class="subtitle">Sistema de Gestão Eclesiástica Integrada</p>
+        
+        <div class="instructions">
+            <h2>🚀 Como Iniciar o Aplicativo</h2>
+            
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <div class="step-title">Feche esta página</div>
+                    <div class="step-desc">Esta é apenas uma página de instruções</div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <div class="step-title">Execute o arquivo correto para seu sistema</div>
+                    <div class="os-buttons">
+                        <button onclick="alert('Procure o arquivo ABRIR.bat na pasta do projeto e clique duas vezes!')" class="button">
+                            🪟 Windows: ABRIR.bat
+                        </button>
+                        <button onclick="alert('No terminal, execute: ./ABRIR.sh')" class="button button-secondary">
+                            🐧 Linux/Mac: ABRIR.sh
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <div class="step-title">Aguarde o navegador abrir automaticamente</div>
+                    <div class="step-desc">O aplicativo abrirá em http://localhost:8080</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="success">
+            ✅ <strong>Requisito:</strong> Python 3 instalado (já vem na maioria dos sistemas)
+        </div>
+        
+        <div class="warning">
+            ⚠️ <strong>Importante:</strong> NÃO abra o arquivo index.html diretamente! Use sempre o arquivo ABRIR.bat (Windows) ou ABRIR.sh (Linux/Mac)
+        </div>
+        
+        <div class="instructions" style="background: #edf2f7; border-left-color: #4a5568;">
+            <h2>🔐 Primeiro Acesso</h2>
+            <p style="color: #4a5568; line-height: 1.8;">
+                <strong>Usuário:</strong> admin<br>
+                <strong>Senha:</strong> admin123<br>
+                <br>
+                <em>Altere a senha após o primeiro acesso!</em>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Versão 2.0.0</strong> • Sistema desenvolvido para IEAD</p>
+            <p style="margin-top: 10px;">💡 Dica: Crie um atalho na área de trabalho para o arquivo ABRIR.bat</p>
+        </div>
+    </div>
+    
+    <script>
+        // Detectar sistema operacional
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isWindows = userAgent.indexOf('windows') !== -1;
+        const isMac = userAgent.indexOf('mac') !== -1;
+        const isLinux = userAgent.indexOf('linux') !== -1;
+        
+        // Mostrar mensagem específica para o SO
+        if (isWindows) {
+            console.log('Sistema detectado: Windows - Use ABRIR.bat');
+        } else if (isMac) {
+            console.log('Sistema detectado: Mac - Use ABRIR.sh');
+        } else if (isLinux) {
+            console.log('Sistema detectado: Linux - Use ABRIR.sh');
+        }
+    </script>
+</body>
+</html>

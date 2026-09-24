@@ -1,196 +1,128 @@
 # ⛪ Gestão de Tesouraria - IEAD
 
-Sistema completo de gestão financeira para igrejas evangélicas de pequeno e micro portes.
+## 🚀 COMO USAR (3 PASSOS SIMPLES)
+
+### 📌 PASSO 1: Verificar se tem Python instalado
+
+Abra o terminal (ou prompt de comando) e digite:
+```bash
+python --version
+```
+
+Se aparecer algo como "Python 3.x.x", está OK! ✅
+
+Se der erro, instale o Python:
+- **Windows:** https://python.org/downloads/
+- **Linux:** `sudo apt install python3`
+- **Mac:** `brew install python3`
 
 ---
 
-## 🚀 Como Iniciar o Aplicativo
-
-### Opção 1: Script Automático (Recomendado)
+### 📌 PASSO 2: Executar o arquivo de inicialização
 
 **Windows:**
 ```
-Clique duas vezes no arquivo: INICIAR.bat
+Clique DUAS VEZES no arquivo: ABRIR.bat
 ```
 
 **Linux/Mac:**
 ```bash
-chmod +x INICIAR.sh
-./INICIAR.sh
+chmod +x ABRIR.sh
+./ABRIR.sh
 ```
 
-### Opção 2: Manual
+---
 
-1. **Abra o terminal** na pasta do projeto
-2. **Instale as dependências** (apenas na primeira vez):
-   ```bash
-   npm install
-   ```
-3. **Inicie o servidor**:
-   ```bash
-   npm run dev
-   ```
-4. **Abra o navegador** em: `http://localhost:3000`
+### 📌 PASSO 3: Aguardar o navegador abrir
+
+O aplicativo abrirá automaticamente em:
+
+👉 **http://localhost:8080**
+
+Se não abrir automaticamente, abra o navegador manualmente e acesse o endereço acima.
 
 ---
 
-## 📋 Requisitos
+## ⚠️ IMPORTANTE
 
-- **Node.js** versão 18 ou superior ([Download](https://nodejs.org/))
-- **Navegador** moderno (Chrome, Firefox, Edge, Safari)
-
----
-
-## 🔐 Primeiro Acesso
-
-Após iniciar o servidor, acesse `http://localhost:3000` e use as credenciais fornecidas pelo administrador do sistema.
-
-**Credenciais padrão (apenas para configuração inicial):**
-- Usuário: `admin`
-- Senha: `admin123`
-
-⚠️ **Importante:** Altere a senha após o primeiro acesso!
+- ✅ **NÃO abra o arquivo index.html diretamente** - não funciona!
+- ✅ Use **SEMPRE** o arquivo `ABRIR.bat` (Windows) ou `ABRIR.sh` (Linux/Mac)
+- ✅ Mantenha a janela preta aberta enquanto usa o aplicativo
+- ✅ Para fechar: pressione `Ctrl+C` na janela preta ou feche-a
 
 ---
 
-## 📖 Funcionalidades
+## 🔐 PRIMEIRO ACESSO
 
-### 🏠 Painel (Dashboard)
-- Visão geral das finanças
-- Gráficos de tendência
-- Maiores contribuintes
-- Ações rápidas
+```
+Usuário: admin
+Senha: admin123
+```
 
-### 👥 Membros
-- Cadastro completo de dizimistas
-- Histórico de contribuições
-- Ativação/desativação de membros
-- Importação via CSV
-
-### 💰 Lançamentos
-- Registro de dízimos e ofertas
-- Controle de despesas por categoria
-- Estorno de transações
-- Vínculo com membros
-
-### 📊 Compromissos
-- Controle de despesas fixas
-- Alertas de vencimento
-- Frequência personalizável
-
-### 📄 Remessa Mensal
-- Planilha no modelo oficial
-- Cálculo automático de remessa
-- Percentuais configuráveis por período
-- Impressão em paisagem
-
-### 💹 Fluxo de Caixa
-- Visão mensal e anual
-- Gráficos comparativos
-- Exportação em CSV
-
-### 📈 Relatórios
-- Balancete de verificação
-- Listagem de dizimistas
-- Histórico individual
-- Resumo geral
-
-### ⚙️ Configurações
-- Dados da igreja
-- Congregações
-- Regras de remessa por período
-- Categorias financeiras
-- Ministérios
-
-### 👤 Administração (Master/Admin)
-- Gestão de usuários
-- Perfis de acesso
-- Controle de permissões
+⚠️ **Altere a senha após o primeiro acesso!**
 
 ---
 
-## 💾 Backup e Restauração
+## 💾 BACKUP E SEGURANÇA
 
-O sistema armazena todos os dados localmente no navegador com chave de integridade.
+Os dados são salvos automaticamente no navegador (localStorage).
 
-**Fazer Backup:**
-1. Acesse "Importar/Exportar"
+**FAÇA BACKUP REGULARMENTE:**
+1. Acesse o menu "Importar/Exportar"
 2. Clique em "Gerar Backup"
-3. Salve o arquivo JSON
-
-**Restaurar Backup:**
-1. Acesse "Importar/Exportar"
-2. Clique em "Restaurar Backup"
-3. Selecione o arquivo JSON
+3. Salve o arquivo JSON em local seguro (pendrive, nuvem, etc)
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🆘 SOLUÇÃO DE PROBLEMAS
 
-```
-├── src/
-│   ├── pages/          # Páginas do aplicativo
-│   ├── store.ts        # Gerenciamento de dados
-│   ├── types.ts        # Definições de tipos
-│   ├── App.tsx         # Componente principal
-│   └── main.tsx        # Ponto de entrada
-├── dist/               # Arquivos de produção (gerado pelo build)
-├── INICIAR.bat         # Script Windows
-├── INICIAR.sh          # Script Linux/Mac
-└── README.md           # Este arquivo
-```
+### ❌ Problema: "Python não encontrado"
+**✅ Solução:** Instale o Python em https://python.org
 
----
+### ❌ Problema: Página em branco ao abrir
+**✅ Solução:** 
+- Verifique se a janela preta está aberta
+- Aguarde alguns segundos
+- Tente acessar manualmente: http://localhost:8080
 
-## 🔧 Comandos Disponíveis
+### ❌ Problema: "Porta 8080 já está em uso"
+**✅ Solução:** 
+- Feche outros programas que usem a porta 8080
+- Ou edite o arquivo `ABRIR.bat` e mude para porta 8081
 
-| Comando | Descrição |
-|---------|-----------|
-| `npm run dev` | Inicia servidor de desenvolvimento |
-| `npm run build` | Gera versão de produção |
-| `npm run preview` | Visualiza versão de produção |
+### ❌ Problema: Aplicativo não abre ao clicar no arquivo HTML
+**✅ Solução:** NÃO abra o HTML diretamente! Use `ABRIR.bat` ou `ABRIR.sh`
 
 ---
 
-## 🆘 Solução de Problemas
+## 📖 FUNCIONALIDADES PRINCIPAIS
 
-### Página em branco ao abrir
-- Verifique se o servidor está rodando (`npm run dev`)
-- Acesse `http://localhost:3000` (não abra o arquivo HTML diretamente)
-
-### Erro "Node.js não está instalado"
-- Instale o Node.js: https://nodejs.org/
-- Reinicie o terminal após instalar
-
-### Erro ao instalar dependências
-```bash
-npm cache clean --force
-npm install
-```
-
-### Porta 3000 já está em uso
-```bash
-# Windows
-netstat -ano | findstr :3000
-taskkill /PID <numero> /F
-
-# Linux/Mac
-lsof -ti:3000 | xargs kill -9
-```
+- ✅ Painel com gráficos e análises em tempo real
+- ✅ Gestão completa de membros e dizimistas
+- ✅ Controle de dízimos, ofertas e despesas
+- ✅ Planilha de remessa mensal (modelo oficial)
+- ✅ Fluxo de caixa mensal e anual
+- ✅ Relatórios detalhados (balancetes, listagens, etc)
+- ✅ Backup com chave de integridade
+- ✅ Sistema de login com perfis de acesso
+- ✅ Importação/exportação via CSV
 
 ---
 
-## 📞 Suporte
+## 💡 DICAS ÚTEIS
 
-Para dúvidas ou problemas, entre em contato com o suporte técnico da sua região.
-
----
-
-## 📝 Licença
-
-Sistema desenvolvido para uso interno da IEAD.
+- ✅ Crie um atalho na área de trabalho para o arquivo `ABRIR.bat`
+- ✅ Faça backup dos dados semanalmente
+- ✅ Use o mesmo navegador para manter os dados salvos
+- ✅ Configure as regras de remessa antes de começar a usar
+- ✅ Cadastre as congregações em Configurações
 
 ---
 
-**Versão:** 2.0.0  
-**Última atualização:** 2026
+## 📞 SUPORTE
+
+Para dúvidas ou problemas técnicos, entre em contato com o suporte da sua região.
+
+---
+
+**Versão 2.0.0** • Desenvolvido para IEAD • 2026

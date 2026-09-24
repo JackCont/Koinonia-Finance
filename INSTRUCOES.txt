@@ -7,81 +7,43 @@
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 
-📋 COMO INICIAR O APLICATIVO (Passo a Passo)
-════════════════════════════════════════════
+🚀 COMO INICIAR O APLICATIVO (3 PASSOS SIMPLES)
+════════════════════════════════════════════════
 
 
-🔹 PASSO 1: Instalar o Node.js (apenas na primeira vez)
-─────────────────────────────────────────────────────────
+📌 PASSO 1: Verificar se tem Python instalado
+──────────────────────────────────────────────
 
-   Se você ainda não tem o Node.js instalado:
-   
-   ➜ Acesse: https://nodejs.org/
-   ➜ Baixe a versão LTS (recomendada)
-   ➜ Instale seguindo as instruções do instalador
-   ➜ Reinicie o computador após a instalação
+Abra o terminal (ou prompt de comando) e digite:
 
+    python --version
 
-🔹 PASSO 2: Iniciar o Aplicativo
-──────────────────────────────────
+Se aparecer algo como "Python 3.x.x", está OK! ✅
 
-   Existem 3 formas de iniciar:
+Se der erro, instale o Python:
+  ➜ Windows: https://python.org/downloads/
+  ➜ Linux: sudo apt install python3
+  ➜ Mac: brew install python3
 
 
-   🅰️  OPÇÃO MAIS FÁCIL - Script Automático:
-   
-       Windows:  Clique duas vezes em "INICIAR.bat"
-       Linux:    Execute "./INICIAR.sh" no terminal
-       
-       O script fará tudo automaticamente!
+📌 PASSO 2: Executar o arquivo de inicialização
+────────────────────────────────────────────────
+
+Windows:
+  ➜ Clique DUAS VEZES no arquivo: ABRIR.bat
+
+Linux/Mac:
+  ➜ No terminal, execute: ./ABRIR.sh
 
 
-   🅱️  OPÇÃO MANUAL - Via Terminal:
-   
-       1. Abra o terminal ou prompt de comando
-       2. Navegue até a pasta do projeto:
-       
-          cd caminho/para/a/pasta/do/projeto
-       
-       3. Instale as dependências (apenas na primeira vez):
-       
-          npm install
-       
-       4. Inicie o servidor:
-       
-          npm run dev
+📌 PASSO 3: Aguardar o navegador abrir
+────────────────────────────────────────
 
+O aplicativo abrirá automaticamente em:
+  
+  👉 http://localhost:8080
 
-   🅲  OPÇÃO VISUAL - Guia Interativo:
-   
-       Abra o arquivo "COMO_USAR.html" no navegador
-       Ele mostra um guia visual passo a passo
-
-
-🔹 PASSO 3: Acessar o Aplicativo
-──────────────────────────────────
-
-   Após executar o comando "npm run dev", aguarde aparecer:
-   
-   ┌─────────────────────────────────────────┐
-   │  VITE v5.0.0  ready in 500 ms           │
-   │                                         │
-   │  ➜  Local:   http://localhost:3000/     │
-   │  ➜  Network: use --host to expose      │
-   └─────────────────────────────────────────┘
-   
-   Então abra seu navegador e acesse:
-   
-   👉  http://localhost:3000
-
-
-🔹 PASSO 4: Fazer Login
-────────────────────────
-
-   Na tela de login, use as credenciais fornecidas pelo administrador.
-   
-   Se for o primeiro acesso, clique em "Primeiro acesso? Clique aqui"
-   para ver instruções de como obter suas credenciais.
+Se não abrir automaticamente, abra o navegador manualmente e acesse o endereço acima.
 
 
 ═══════════════════════════════════════════════════════════════════════════════
@@ -90,62 +52,101 @@
 ⚠️  IMPORTANTE
 ══════════════
 
-• Mantenha o terminal/janela do script ABERTA enquanto usa o aplicativo
-• Para parar o servidor, pressione Ctrl+C no terminal
-• Os dados são salvos automaticamente no navegador (localStorage)
-• Faça backup regularmente em "Importar/Exportar" → "Gerar Backup"
+✓ NÃO abra o arquivo index.html diretamente - não funciona!
+✓ Use SEMPRE o arquivo ABRIR.bat (Windows) ou ABRIR.sh (Linux/Mac)
+✓ Mantenha a janela preta aberta enquanto usa o aplicativo
+✓ Para fechar: pressione Ctrl+C na janela preta ou feche-a
 
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 
-🆘  SOLUÇÃO DE PROBLEMAS
-════════════════════════
+🔐 PRIMEIRO ACESSO
+══════════════════
+
+Usuário: admin
+Senha: admin123
+
+⚠️ Altere a senha após o primeiro acesso!
 
 
-❌ Problema: "Node.js não está instalado"
-   ✅ Solução: Instale o Node.js em https://nodejs.org/
+═══════════════════════════════════════════════════════════════════════════════
 
 
-❌ Problema: Página em branco ao acessar http://localhost:3000
-   ✅ Solução: Verifique se o servidor está rodando (terminal aberto)
+💾 BACKUP E SEGURANÇA
+═════════════════════
+
+Os dados são salvos automaticamente no navegador (localStorage).
+
+FAÇA BACKUP REGULARMENTE:
+  1. Acesse o menu "Importar/Exportar"
+  2. Clique em "Gerar Backup"
+  3. Salve o arquivo JSON em local seguro (pendrive, nuvem, etc)
 
 
-❌ Problema: "Porta 3000 já está em uso"
-   ✅ Solução: Feche outros programas que usem a porta 3000 ou use:
-              npm run dev -- --port 3001
+═══════════════════════════════════════════════════════════════════════════════
 
 
-❌ Problema: Erro ao executar "npm install"
-   ✅ Solução: Execute os comandos:
-              npm cache clean --force
-              npm install
+🆘 SOLUÇÃO DE PROBLEMAS
+═══════════════════════
+
+
+❌ Problema: "Python não encontrado"
+   ✅ Solução: Instale o Python em https://python.org
+
+
+❌ Problema: Página em branco ao abrir
+   ✅ Solução: Verifique se a janela preta está aberta
+   ✅ Aguarde alguns segundos
+   ✅ Tente acessar manualmente: http://localhost:8080
+
+
+❌ Problema: "Porta 8080 já está em uso"
+   ✅ Solução: Feche outros programas que usem a porta 8080
+   ✅ Ou edite o arquivo ABRIR.bat e mude para porta 8081
 
 
 ❌ Problema: Aplicativo não abre ao clicar no arquivo HTML
-   ✅ Solução: NÃO abra o arquivo HTML diretamente!
-              Use um dos métodos acima para iniciar o servidor primeiro
+   ✅ Solução: NÃO abra o HTML diretamente! Use ABRIR.bat ou ABRIR.sh
 
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 
-📞  SUPORTE
-═══════════
+📖 FUNCIONALIDADES PRINCIPAIS
+════════════════════════════
 
-Para dúvidas ou problemas técnicos, entre em contato com o suporte da sua região.
+✓ Painel com gráficos e análises em tempo real
+✓ Gestão completa de membros e dizimistas
+✓ Controle de dízimos, ofertas e despesas
+✓ Planilha de remessa mensal (modelo oficial)
+✓ Fluxo de caixa mensal e anual
+✓ Relatórios detalhados (balancetes, listagens, etc)
+✓ Backup com chave de integridade
+✓ Sistema de login com perfis de acesso
+✓ Importação/exportação via CSV
 
 
 ═══════════════════════════════════════════════════════════════════════════════
 
 
-💡  DICAS ÚTEIS
-═══════════════
+💡 DICAS ÚTEIS
+══════════════
 
-✓ Crie um atalho na área de trabalho para "INICIAR.bat" (Windows)
+✓ Crie um atalho na área de trabalho para o arquivo ABRIR.bat
 ✓ Faça backup dos dados semanalmente
 ✓ Use o mesmo navegador para manter os dados salvos
 ✓ Configure as regras de remessa antes de começar a usar
+✓ Cadastre as congregações em Configurações
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+
+📞 SUPORTE
+══════════
+
+Para dúvidas ou problemas técnicos, entre em contato com o suporte da sua região.
 
 
 ═══════════════════════════════════════════════════════════════════════════════
