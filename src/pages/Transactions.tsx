@@ -1,0 +1,278 @@
+import { useState, useMemo } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter } from 'lucide-react';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig } from '../store';
+import { Transaction, TransactionType, TransactionCategory } from '../types';
+import { format, parseISO } from 'date-fns';
+
+export default function Transactions() {
+  const [transactions, setTransactions] = useState(getTransactions());
+  const [search, setSearch] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
+  const [filterMonth, setFilterMonth] = useState('');
+  const config = getConfig();
+  const members = getMembers();
+
+  const emptyTransaction: Omit<Transaction, 'id' | 'createdAt'> = {
+    data: format(new Date(), 'yyyy-MM-dd'),
+    tipo: 'ENTRADA',
+    categoria: 'DIZIMO',
+    valor: 0,
+    descricao: '',
+    memberId: '',
+    estornada: false,
+  };
+
+  const [form, setForm] = useState(emptyTransaction);
+
+  const filtered = useMemo(() => {
+    return transactions.filter(t => {
+      const matchSearch = t.descricao.toLowerCase().includes(search.toLowerCase());
+      const matchType = filterType === 'all' || t.tipo === filterType;
+      const matchCategory = filterCategory === 'all' || t.categoria === filterCategory;
+      const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
+      return matchSearch && matchType && matchCategory && matchMonth;
+    }).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+  }, [transactions, search, filterType, filterCategory, filterMonth]);
+
+  const handleSave = () => {
+    if (!form.descricao.trim() || form.valor <= 0) {
+      alert('Descrição e valor são obrigatórios (valor > 0)');
+      return;
+    }
+    const transaction: Transaction = {
+      ...form,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    };
+    saveTransaction(transaction);
+    setTransactions(getTransactions());
+    setShowForm(false);
+    setForm(emptyTransaction);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Remover este lançamento?')) {
+      deleteTransaction(id);
+      setTransactions(getTransactions());
+    }
+  };
+
+  const handleEstorno = (id: string) => {
+    const motivo = prompt('Motivo do estorno:');
+    if (motivo) {
+      estornarTransaction(id, motivo);
+      setTransactions(getTransactions());
+    }
+  };
+
+  const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  
+  const getCategoryName = (cat: string) => {
+    const c = config.categories.find(c => c.id === cat) || config.categories.find(c => c.nome === cat);
+    return c?.nome || cat;
+  };
+
+  const getMemberName = (id?: string) => {
+    if (!id) return '';
+    return members.find(m => m.id === id)?.nome || '';
+  };
+
+  const getCategoryColor = (cat: string) => {
+    const c = config.categories.find(c => c.id === cat || c.nome === cat);
+    return c?.cor || '#64748b';
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Filters */}
+      <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
+        <div className="relative flex-1 max-w-sm">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input type="text" placeholder="Buscar descrição..." value={search} onChange={e => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <select value={filterType} onChange={e => setFilterType(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+            <option value="all">Todos os tipos</option>
+            <option value="ENTRADA">Entradas</option>
+            <option value="SAIDA">Saídas</option>
+          </select>
+          <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+            <option value="all">Todas categorias</option>
+            {config.categories.map(c => (
+              <option key={c.id} value={c.nome}>{c.nome}</option>
+            ))}
+          </select>
+          <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+        </div>
+        <button onClick={() => { setForm(emptyTransaction); setShowForm(true); }}
+          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+          <Plus size={16} /> Novo Lançamento
+        </button>
+      </div>
+
+      {/* Summary */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+          <p className="text-xs text-emerald-600 font-medium">Total Entradas</p>
+          <p className="text-lg font-bold text-emerald-700">
+            {formatCurrency(filtered.filter(t => t.tipo === 'ENTRADA' && !t.estornada).reduce((s, t) => s + t.valor, 0))}
+          </p>
+        </div>
+        <div className="bg-red-50 rounded-xl p-4 border border-red-100">
+          <p className="text-xs text-red-600 font-medium">Total Saídas</p>
+          <p className="text-lg font-bold text-red-700">
+            {formatCurrency(filtered.filter(t => t.tipo === 'SAIDA' && !t.estornada).reduce((s, t) => s + t.valor, 0))}
+          </p>
+        </div>
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+          <p className="text-xs text-blue-600 font-medium">Lançamentos</p>
+          <p className="text-lg font-bold text-blue-700">{filtered.length}</p>
+        </div>
+      </div>
+
+      {/* Transactions list */}
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-slate-50 border-b border-slate-200">
+              <tr>
+                <th className="text-left px-4 py-3 font-medium text-slate-600">Data</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-600">Descrição</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-600">Categoria</th>
+                <th className="text-left px-4 py-3 font-medium text-slate-600">Membro</th>
+                <th className="text-right px-4 py-3 font-medium text-slate-600">Valor</th>
+                <th className="text-center px-4 py-3 font-medium text-slate-600">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filtered.map(t => (
+                <tr key={t.id} className={`hover:bg-slate-50 transition-colors ${t.estornada ? 'opacity-50 line-through' : ''}`}>
+                  <td className="px-4 py-3 text-slate-600">{format(parseISO(t.data), 'dd/MM/yyyy')}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      {t.tipo === 'ENTRADA' ? 
+                        <ArrowUpRight size={14} className="text-emerald-500" /> : 
+                        <ArrowDownRight size={14} className="text-red-500" />
+                      }
+                      <span className="text-slate-700">{t.descricao}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-full"
+                      style={{ backgroundColor: getCategoryColor(t.categoria) + '20', color: getCategoryColor(t.categoria) }}>
+                      <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: getCategoryColor(t.categoria) }} />
+                      {getCategoryName(t.categoria)}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-slate-500">{getMemberName(t.memberId) || '---'}</td>
+                  <td className={`px-4 py-3 text-right font-semibold ${t.tipo === 'ENTRADA' ? 'text-emerald-600' : 'text-red-600'}`}>
+                    {t.tipo === 'ENTRADA' ? '+' : '-'}{formatCurrency(t.valor)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center justify-center gap-1">
+                      {!t.estornada && (
+                        <button onClick={() => handleEstorno(t.id)} title="Estornar"
+                          className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
+                          <RotateCcw size={14} />
+                        </button>
+                      )}
+                      <button onClick={() => handleDelete(t.id)} title="Remover"
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {filtered.length === 0 && (
+          <div className="text-center py-12">
+            <Filter size={48} className="mx-auto text-slate-300 mb-4" />
+            <p className="text-slate-500">Nenhum lançamento encontrado</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Form */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-800">Novo Lançamento</h3>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Tipo</label>
+                  <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value as TransactionType})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                    <option value="ENTRADA">Entrada</option>
+                    <option value="SAIDA">Saída</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Data</label>
+                  <input type="date" value={form.data} onChange={e => setForm({...form, data: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Categoria</label>
+                <select value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value as TransactionCategory})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                  {config.categories.filter(c => c.tipo === form.tipo).map(c => (
+                    <option key={c.id} value={c.nome}>{c.nome}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Descrição *</label>
+                <input type="text" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" placeholder="Ex: Dízimo João Silva" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Valor (R$) *</label>
+                  <input type="number" step="0.01" min="0" value={form.valor || ''} onChange={e => setForm({...form, valor: parseFloat(e.target.value) || 0})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Membro (opcional)</label>
+                  <select value={form.memberId} onChange={e => setForm({...form, memberId: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                    <option value="">-- Nenhum --</option>
+                    {members.filter(m => m.status === 'ATIVO').map(m => (
+                      <option key={m.id} value={m.id}>{m.nome}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+                Cancelar
+              </button>
+              <button onClick={handleSave} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700">
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
