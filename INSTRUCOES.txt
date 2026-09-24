@@ -1,0 +1,155 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                                                                              ║
+║              ⛪  GESTÃO DE TESOURARIA - IEAD  ⛪                             ║
+║                                                                              ║
+║                    Sistema de Gestão Eclesiástica                            ║
+║                                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+
+📋 COMO INICIAR O APLICATIVO (Passo a Passo)
+════════════════════════════════════════════
+
+
+🔹 PASSO 1: Instalar o Node.js (apenas na primeira vez)
+─────────────────────────────────────────────────────────
+
+   Se você ainda não tem o Node.js instalado:
+   
+   ➜ Acesse: https://nodejs.org/
+   ➜ Baixe a versão LTS (recomendada)
+   ➜ Instale seguindo as instruções do instalador
+   ➜ Reinicie o computador após a instalação
+
+
+🔹 PASSO 2: Iniciar o Aplicativo
+──────────────────────────────────
+
+   Existem 3 formas de iniciar:
+
+
+   🅰️  OPÇÃO MAIS FÁCIL - Script Automático:
+   
+       Windows:  Clique duas vezes em "INICIAR.bat"
+       Linux:    Execute "./INICIAR.sh" no terminal
+       
+       O script fará tudo automaticamente!
+
+
+   🅱️  OPÇÃO MANUAL - Via Terminal:
+   
+       1. Abra o terminal ou prompt de comando
+       2. Navegue até a pasta do projeto:
+       
+          cd caminho/para/a/pasta/do/projeto
+       
+       3. Instale as dependências (apenas na primeira vez):
+       
+          npm install
+       
+       4. Inicie o servidor:
+       
+          npm run dev
+
+
+   🅲  OPÇÃO VISUAL - Guia Interativo:
+   
+       Abra o arquivo "COMO_USAR.html" no navegador
+       Ele mostra um guia visual passo a passo
+
+
+🔹 PASSO 3: Acessar o Aplicativo
+──────────────────────────────────
+
+   Após executar o comando "npm run dev", aguarde aparecer:
+   
+   ┌─────────────────────────────────────────┐
+   │  VITE v5.0.0  ready in 500 ms           │
+   │                                         │
+   │  ➜  Local:   http://localhost:3000/     │
+   │  ➜  Network: use --host to expose      │
+   └─────────────────────────────────────────┘
+   
+   Então abra seu navegador e acesse:
+   
+   👉  http://localhost:3000
+
+
+🔹 PASSO 4: Fazer Login
+────────────────────────
+
+   Na tela de login, use as credenciais fornecidas pelo administrador.
+   
+   Se for o primeiro acesso, clique em "Primeiro acesso? Clique aqui"
+   para ver instruções de como obter suas credenciais.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+
+⚠️  IMPORTANTE
+══════════════
+
+• Mantenha o terminal/janela do script ABERTA enquanto usa o aplicativo
+• Para parar o servidor, pressione Ctrl+C no terminal
+• Os dados são salvos automaticamente no navegador (localStorage)
+• Faça backup regularmente em "Importar/Exportar" → "Gerar Backup"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+
+🆘  SOLUÇÃO DE PROBLEMAS
+════════════════════════
+
+
+❌ Problema: "Node.js não está instalado"
+   ✅ Solução: Instale o Node.js em https://nodejs.org/
+
+
+❌ Problema: Página em branco ao acessar http://localhost:3000
+   ✅ Solução: Verifique se o servidor está rodando (terminal aberto)
+
+
+❌ Problema: "Porta 3000 já está em uso"
+   ✅ Solução: Feche outros programas que usem a porta 3000 ou use:
+              npm run dev -- --port 3001
+
+
+❌ Problema: Erro ao executar "npm install"
+   ✅ Solução: Execute os comandos:
+              npm cache clean --force
+              npm install
+
+
+❌ Problema: Aplicativo não abre ao clicar no arquivo HTML
+   ✅ Solução: NÃO abra o arquivo HTML diretamente!
+              Use um dos métodos acima para iniciar o servidor primeiro
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+
+📞  SUPORTE
+═══════════
+
+Para dúvidas ou problemas técnicos, entre em contato com o suporte da sua região.
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+
+💡  DICAS ÚTEIS
+═══════════════
+
+✓ Crie um atalho na área de trabalho para "INICIAR.bat" (Windows)
+✓ Faça backup dos dados semanalmente
+✓ Use o mesmo navegador para manter os dados salvos
+✓ Configure as regras de remessa antes de começar a usar
+
+
+═══════════════════════════════════════════════════════════════════════════════
+
+Versão 2.0.0 • Desenvolvido para IEAD • 2026
+
+═══════════════════════════════════════════════════════════════════════════════
