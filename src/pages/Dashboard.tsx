@@ -93,8 +93,48 @@ export default function Dashboard({ onNavigate }: Props) {
 
   const maxTrend = Math.max(...stats.monthlyTrend.map(m => Math.max(m.entradas, m.saidas)), 1);
 
+  // Check if this is a fresh install
+  const isFirstAccess = transactions.length === 0 && members.length === 0;
+
   return (
     <div className="space-y-6">
+      {/* First access guide */}
+      {isFirstAccess && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl">👋</span>
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-amber-900 text-lg">Bem-vindo ao Tesouraria Digital!</h3>
+              <p className="text-amber-800 text-sm mt-1">Veja como começar a usar o sistema:</p>
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button onClick={() => onNavigate('settings')} className="text-left p-3 bg-white rounded-xl border border-amber-200 hover:border-amber-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                    <span className="font-semibold text-sm text-slate-800">Configurar Igreja</span>
+                  </div>
+                  <p className="text-xs text-slate-500 ml-8">Cadastre dados da igreja, região e congregações</p>
+                </button>
+                <button onClick={() => onNavigate('members')} className="text-left p-3 bg-white rounded-xl border border-amber-200 hover:border-amber-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                    <span className="font-semibold text-sm text-slate-800">Cadastrar Membros</span>
+                  </div>
+                  <p className="text-xs text-slate-500 ml-8">Adicione dizimistas ou importe via CSV</p>
+                </button>
+                <button onClick={() => onNavigate('transactions')} className="text-left p-3 bg-white rounded-xl border border-amber-200 hover:border-amber-400 transition-colors">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                    <span className="font-semibold text-sm text-slate-800">Registrar Lançamentos</span>
+                  </div>
+                  <p className="text-xs text-slate-500 ml-8">Comece a registrar dízimos, ofertas e despesas</p>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-xl shadow-indigo-200">
         <h1 className="text-2xl font-bold">{config.nomeIgreja}</h1>
@@ -286,24 +326,42 @@ export default function Dashboard({ onNavigate }: Props) {
         </div>
       </div>
 
-      {/* Quick actions */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <button onClick={() => onNavigate('transactions')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
-          <ArrowUpRight size={20} className="mx-auto text-indigo-500 mb-2" />
-          <p className="text-xs font-medium text-slate-700">Novo Lançamento</p>
-        </button>
-        <button onClick={() => onNavigate('members')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
-          <Users size={20} className="mx-auto text-purple-500 mb-2" />
-          <p className="text-xs font-medium text-slate-700">Cadastrar Membro</p>
-        </button>
-        <button onClick={() => onNavigate('remittance')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
-          <DollarSign size={20} className="mx-auto text-emerald-500 mb-2" />
-          <p className="text-xs font-medium text-slate-700">Gerar Remessa</p>
-        </button>
-        <button onClick={() => onNavigate('reports')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
-          <BarChart3 size={20} className="mx-auto text-amber-500 mb-2" />
-          <p className="text-xs font-medium text-slate-700">Relatórios</p>
-        </button>
+      {/* Quick actions - prominent */}
+      <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6 border border-indigo-100">
+        <h3 className="text-sm font-semibold text-indigo-900 mb-4 flex items-center gap-2">
+          <span className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs">⚡</span>
+          Ações Rápidas
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <button onClick={() => onNavigate('transactions')} className="group p-5 bg-white rounded-xl border-2 border-transparent hover:border-indigo-400 hover:shadow-lg transition-all text-center">
+            <div className="w-12 h-12 bg-indigo-100 group-hover:bg-indigo-200 rounded-xl flex items-center justify-center mx-auto mb-3 transition-colors">
+              <ArrowUpRight size={24} className="text-indigo-600" />
+            </div>
+            <p className="text-sm font-semibold text-slate-800">Novo Lançamento</p>
+            <p className="text-xs text-slate-500 mt-1">Registrar dízimo, oferta ou despesa</p>
+          </button>
+          <button onClick={() => onNavigate('members')} className="group p-5 bg-white rounded-xl border-2 border-transparent hover:border-purple-400 hover:shadow-lg transition-all text-center">
+            <div className="w-12 h-12 bg-purple-100 group-hover:bg-purple-200 rounded-xl flex items-center justify-center mx-auto mb-3 transition-colors">
+              <Users size={24} className="text-purple-600" />
+            </div>
+            <p className="text-sm font-semibold text-slate-800">Cadastrar Membro</p>
+            <p className="text-xs text-slate-500 mt-1">Adicionar ou gerenciar dizimistas</p>
+          </button>
+          <button onClick={() => onNavigate('remittance')} className="group p-5 bg-white rounded-xl border-2 border-transparent hover:border-emerald-400 hover:shadow-lg transition-all text-center">
+            <div className="w-12 h-12 bg-emerald-100 group-hover:bg-emerald-200 rounded-xl flex items-center justify-center mx-auto mb-3 transition-colors">
+              <DollarSign size={24} className="text-emerald-600" />
+            </div>
+            <p className="text-sm font-semibold text-slate-800">Gerar Remessa</p>
+            <p className="text-xs text-slate-500 mt-1">Planilha mensal de movimentação</p>
+          </button>
+          <button onClick={() => onNavigate('reports')} className="group p-5 bg-white rounded-xl border-2 border-transparent hover:border-amber-400 hover:shadow-lg transition-all text-center">
+            <div className="w-12 h-12 bg-amber-100 group-hover:bg-amber-200 rounded-xl flex items-center justify-center mx-auto mb-3 transition-colors">
+              <BarChart3 size={24} className="text-amber-600" />
+            </div>
+            <p className="text-sm font-semibold text-slate-800">Relatórios</p>
+            <p className="text-xs text-slate-500 mt-1">Balancetes e análises</p>
+          </button>
+        </div>
       </div>
     </div>
   );

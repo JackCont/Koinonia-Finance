@@ -12,6 +12,7 @@ export default function Login({ onLogin }: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,15 +97,47 @@ export default function Login({ onLogin }: Props) {
           </form>
 
           {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-white/10 text-center">
+          <div className="mt-6 pt-4 border-t border-white/10 text-center space-y-2">
             <p className="text-xs text-indigo-300/50">
               🔒 Acesso restrito a usuários autorizados
             </p>
-            <p className="text-xs text-indigo-300/40 mt-1">
-              Armazenamento local seguro com chave de integridade
-            </p>
+            <button
+              type="button"
+              onClick={() => setShowHelp(true)}
+              className="text-xs text-amber-300/80 hover:text-amber-300 underline transition-colors"
+            >
+              Primeiro acesso? Clique aqui
+            </button>
           </div>
         </div>
+
+        {/* Help Modal */}
+        {showHelp && (
+          <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowHelp(false)}>
+            <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+              <h3 className="text-lg font-bold text-slate-800 mb-4">👋 Bem-vindo ao Tesouraria Digital</h3>
+              <div className="space-y-3 text-sm text-slate-600">
+                <p><strong>1.</strong> Solicite suas credenciais ao administrador do sistema da sua igreja.</p>
+                <p><strong>2.</strong> Digite o usuário e senha fornecidos nos campos acima.</p>
+                <p><strong>3.</strong> Após o login, você terá acesso ao painel principal com todas as funcionalidades.</p>
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mt-4">
+                  <p className="text-xs text-amber-800">
+                    💡 <strong>Dica:</strong> Se você é o administrador e ainda não configurou o sistema, acesse as configurações após o login para cadastrar congregações, membros e regras de remessa.
+                  </p>
+                </div>
+                <p className="text-xs text-slate-400 mt-4">
+                  Precisa de ajuda? Entre em contato com o suporte técnico da sua região.
+                </p>
+              </div>
+              <button
+                onClick={() => setShowHelp(false)}
+                className="w-full mt-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

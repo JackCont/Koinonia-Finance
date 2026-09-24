@@ -132,7 +132,7 @@ export default function App() {
         </div>
         
         <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
-          {userNavItems.map(item => (
+          {userNavItems.map((item, index) => (
             <button
               key={item.id}
               onClick={() => { setCurrentPage(item.id); setSidebarOpen(false); }}
@@ -143,7 +143,10 @@ export default function App() {
                 }`}
             >
               {item.icon}
-              {item.label}
+              <span className="flex-1 text-left">{item.label}</span>
+              {index === 0 && currentPage !== 'dashboard' && (
+                <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse" title="Comece por aqui" />
+              )}
             </button>
           ))}
         </nav>
