@@ -84,6 +84,7 @@ export default function ImportExport() {
               dataAdmissao: row.dataAdmissao || '',
               status: (row.status as any) || 'ATIVO',
               ministerios: row.ministerios ? row.ministerios.split(',').map(m => m.trim()) : [],
+              congregacao: row.congregacao || '',
               observacoes: row.observacoes || '',
             };
             if (member.nome) {
@@ -108,6 +109,7 @@ export default function ImportExport() {
               categoria: (row.categoria as any) || 'OUTRAS_RECEITAS',
               valor: parseFloat(row.valor) || 0,
               descricao: row.descricao || '',
+              congregacao: row.congregacao || '',
               memberId: row.memberId || undefined,
               estornada: false,
               createdAt: new Date().toISOString(),

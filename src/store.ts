@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -7,60 +7,148 @@ const STORAGE_KEYS = {
   COMMITMENTS: 'iead_commitments',
   AUDIT_LOG: 'iead_audit_log',
   CONFIG: 'iead_config',
+  USERS: 'iead_users',
+  CURRENT_USER: 'iead_current_user',
 };
 
-function generateIntegrityKey(data: string): string {
+function generateIntegrityKey(input: string): string {
   let hash = 0;
-  for (let i = 0; i < data.length; i++) {
-    const char = data.charCodeAt(i);
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash;
   }
   return Math.abs(hash).toString(36).toUpperCase();
 }
 
+export function hashPassword(password: string): string {
+  let hash = 0;
+  for (let i = 0; i < password.length; i++) {
+    const char = password.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return 'h_' + Math.abs(hash).toString(36);
+}
+
 function getFromStorage<T>(key: string, defaultValue: T): T {
   try {
-    const data = localStorage.getItem(key);
-    if (data) return JSON.parse(data);
+    const raw = localStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
     return defaultValue;
   } catch {
     return defaultValue;
   }
 }
 
-function saveToStorage<T>(key: string, data: T): void {
-  localStorage.setItem(key, JSON.stringify(data));
+function saveToStorage<T>(key: string, content: T): void {
+  localStorage.setItem(key, JSON.stringify(content));
 }
 
-// Default categories
 const defaultCategories: CategoryConfig[] = [
-  { id: '1', nome: 'Dízimo', tipo: 'ENTRADA', percentualRepasse: 10, cor: '#10b981' },
+  { id: '1', nome: 'Dízimo', tipo: 'ENTRADA', percentualRepasse: 20, cor: '#10b981' },
   { id: '2', nome: 'Oferta', tipo: 'ENTRADA', cor: '#3b82f6' },
   { id: '3', nome: 'Doação', tipo: 'ENTRADA', cor: '#8b5cf6' },
-  { id: '4', nome: 'Outras Receitas', tipo: 'ENTRADA', cor: '#06b6d4' },
-  { id: '5', nome: 'Despesa Operacional', tipo: 'SAIDA', cor: '#ef4444' },
-  { id: '6', nome: 'Despesa Manutenção', tipo: 'SAIDA', cor: '#f97316' },
-  { id: '7', nome: 'Despesa Pessoal', tipo: 'SAIDA', cor: '#ec4899' },
-  { id: '8', nome: 'Despesa Missionária', tipo: 'SAIDA', cor: '#a855f7' },
-  { id: '9', nome: 'Repasse Denominacional', tipo: 'SAIDA', cor: '#6366f1' },
-  { id: '10', nome: 'Patrimônio', tipo: 'ENTRADA', cor: '#14b8a6' },
-  { id: '11', nome: 'Outras Despesas', tipo: 'SAIDA', cor: '#64748b' },
+  { id: '4', nome: 'Missões', tipo: 'ENTRADA', cor: '#06b6d4' },
+  { id: '5', nome: 'Outras Receitas', tipo: 'ENTRADA', cor: '#14b8a6' },
+  { id: '6', nome: 'Água', tipo: 'SAIDA', cor: '#0ea5e9' },
+  { id: '7', nome: 'Luz', tipo: 'SAIDA', cor: '#f59e0b' },
+  { id: '8', nome: 'Aluguel', tipo: 'SAIDA', cor: '#ef4444' },
+  { id: '9', nome: 'IPTU', tipo: 'SAIDA', cor: '#dc2626' },
+  { id: '10', nome: 'Jubilados', tipo: 'SAIDA', cor: '#ec4899' },
+  { id: '11', nome: 'Mat. Ceia', tipo: 'SAIDA', cor: '#a855f7' },
+  { id: '12', nome: 'Mat. Secretaria', tipo: 'SAIDA', cor: '#6366f1' },
+  { id: '13', nome: 'Mat. Limpeza', tipo: 'SAIDA', cor: '#8b5cf6' },
+  { id: '14', nome: 'Viagem', tipo: 'SAIDA', cor: '#f97316' },
+  { id: '15', nome: 'Despesas Diversas', tipo: 'SAIDA', cor: '#64748b' },
+  { id: '16', nome: 'Pastor', tipo: 'SAIDA', cor: '#7c3aed' },
+  { id: '17', nome: 'Patrimônio', tipo: 'ENTRADA', cor: '#059669' },
+  { id: '18', nome: 'Outras Despesas', tipo: 'SAIDA', cor: '#475569' },
 ];
 
 const defaultConfig: AppConfig = {
-  nomeIgreja: 'Igreja Evangélica',
+  nomeIgreja: 'Igreja Evangélica Assembleia de Deus',
   cnpj: '',
   endereco: '',
   pastorPresidente: '',
   tesoureiro: '',
-  percentualRepasse: 10,
-  taxaDenominacional: 10,
+  regiao: 'SUL DE MINAS GERAIS',
+  cidade: '',
+  setor: '',
+  percentualRepasse: 20,
+  taxaDenominacional: 20,
   categories: defaultCategories,
   ministerios: ['Louvor', 'Ensino', 'Intercessão', 'Juventude', 'Infantil', 'Diaconia', 'Missões'],
+  congregacoes: [],
+  remittanceRules: [
+    {
+      id: 'default',
+      percentual: 20,
+      dataInicio: '2024-01-01',
+      dataFim: '',
+      descricao: 'Regra padrão de remessa',
+      createdAt: new Date().toISOString(),
+    }
+  ],
 };
 
-// Members
+const defaultUsers: User[] = [
+  {
+    id: 'master-001',
+    username: 'admin',
+    passwordHash: hashPassword('admin123'),
+    nome: 'Administrador Master',
+    role: 'MASTER',
+    ativo: true,
+    congregacao: '',
+    createdAt: new Date().toISOString(),
+  }
+];
+
+// ============ AUTH ============
+export function getUsers(): User[] {
+  const users = getFromStorage<User[]>(STORAGE_KEYS.USERS, []);
+  if (users.length === 0) {
+    saveToStorage(STORAGE_KEYS.USERS, defaultUsers);
+    return defaultUsers;
+  }
+  return users;
+}
+
+export function saveUser(user: User): void {
+  const users = getUsers();
+  const idx = users.findIndex(u => u.id === user.id);
+  if (idx >= 0) users[idx] = user;
+  else users.push(user);
+  saveToStorage(STORAGE_KEYS.USERS, users);
+}
+
+export function deleteUser(id: string): void {
+  saveToStorage(STORAGE_KEYS.USERS, getUsers().filter(u => u.id !== id));
+}
+
+export function authenticateUser(username: string, password: string): User | null {
+  const users = getUsers();
+  const hash = hashPassword(password);
+  const user = users.find(u => u.username === username && u.passwordHash === hash && u.ativo);
+  if (user) {
+    const updated = { ...user, lastLogin: new Date().toISOString() };
+    saveUser(updated);
+    saveToStorage(STORAGE_KEYS.CURRENT_USER, updated);
+    return updated;
+  }
+  return null;
+}
+
+export function getCurrentUser(): User | null {
+  return getFromStorage<User | null>(STORAGE_KEYS.CURRENT_USER, null);
+}
+
+export function logout(): void {
+  localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+}
+
+// ============ MEMBERS ============
 export function getMembers(): Member[] {
   return getFromStorage<Member[]>(STORAGE_KEYS.MEMBERS, []);
 }
@@ -68,22 +156,18 @@ export function getMembers(): Member[] {
 export function saveMember(member: Member): void {
   const members = getMembers();
   const idx = members.findIndex(m => m.id === member.id);
-  if (idx >= 0) {
-    members[idx] = member;
-  } else {
-    members.push(member);
-  }
+  if (idx >= 0) members[idx] = member;
+  else members.push(member);
   saveToStorage(STORAGE_KEYS.MEMBERS, members);
   addAuditLog('MEMBRO', `Membro ${member.nome} salvo`);
 }
 
 export function deleteMember(id: string): void {
-  const members = getMembers().filter(m => m.id !== id);
-  saveToStorage(STORAGE_KEYS.MEMBERS, members);
+  saveToStorage(STORAGE_KEYS.MEMBERS, getMembers().filter(m => m.id !== id));
   addAuditLog('MEMBRO', `Membro ${id} removido`);
 }
 
-// Transactions
+// ============ TRANSACTIONS ============
 export function getTransactions(): Transaction[] {
   return getFromStorage<Transaction[]>(STORAGE_KEYS.TRANSACTIONS, []);
 }
@@ -91,18 +175,14 @@ export function getTransactions(): Transaction[] {
 export function saveTransaction(transaction: Transaction): void {
   const transactions = getTransactions();
   const idx = transactions.findIndex(t => t.id === transaction.id);
-  if (idx >= 0) {
-    transactions[idx] = transaction;
-  } else {
-    transactions.push(transaction);
-  }
+  if (idx >= 0) transactions[idx] = transaction;
+  else transactions.push(transaction);
   saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
-  addAuditLog('LANCAMENTO', `Transação ${transaction.descricao} - R$ ${transaction.valor.toFixed(2)} salva`);
+  addAuditLog('LANCAMENTO', `Transação ${transaction.descricao} - R$ ${transaction.valor.toFixed(2)}`);
 }
 
 export function deleteTransaction(id: string): void {
-  const transactions = getTransactions().filter(t => t.id !== id);
-  saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
+  saveToStorage(STORAGE_KEYS.TRANSACTIONS, getTransactions().filter(t => t.id !== id));
   addAuditLog('LANCAMENTO', `Transação ${id} removida`);
 }
 
@@ -115,14 +195,16 @@ export function estornarTransaction(id: string, motivo: string): Transaction | n
   original.estornada = true;
   original.estornoMotivo = motivo;
 
+  const dateStr = new Date().toISOString().split('T')[0];
   const estorno: Transaction = {
     id: uuidv4(),
-    data: new Date().toISOString().split('T')[0],
+    data: dateStr,
     tipo: original.tipo === 'ENTRADA' ? 'SAIDA' : 'ENTRADA',
     categoria: original.categoria,
     valor: original.valor,
     memberId: original.memberId,
     descricao: `ESTORNO: ${original.descricao} | Motivo: ${motivo}`,
+    congregacao: original.congregacao,
     estornada: false,
     createdAt: new Date().toISOString(),
   };
@@ -134,7 +216,7 @@ export function estornarTransaction(id: string, motivo: string): Transaction | n
   return estorno;
 }
 
-// Commitments
+// ============ COMMITMENTS ============
 export function getCommitments(): Commitment[] {
   return getFromStorage<Commitment[]>(STORAGE_KEYS.COMMITMENTS, []);
 }
@@ -142,42 +224,44 @@ export function getCommitments(): Commitment[] {
 export function saveCommitment(commitment: Commitment): void {
   const commitments = getCommitments();
   const idx = commitments.findIndex(c => c.id === commitment.id);
-  if (idx >= 0) {
-    commitments[idx] = commitment;
-  } else {
-    commitments.push(commitment);
-  }
+  if (idx >= 0) commitments[idx] = commitment;
+  else commitments.push(commitment);
   saveToStorage(STORAGE_KEYS.COMMITMENTS, commitments);
   addAuditLog('COMPROMISSO', `Compromisso ${commitment.descricao} salvo`);
 }
 
 export function deleteCommitment(id: string): void {
-  const commitments = getCommitments().filter(c => c.id !== id);
-  saveToStorage(STORAGE_KEYS.COMMITMENTS, commitments);
+  saveToStorage(STORAGE_KEYS.COMMITMENTS, getCommitments().filter(c => c.id !== id));
 }
 
-// Audit Log
+// ============ AUDIT LOG ============
 export function getAuditLog(): AuditLog[] {
   return getFromStorage<AuditLog[]>(STORAGE_KEYS.AUDIT_LOG, []);
 }
 
 export function addAuditLog(acao: string, detalhes: string): void {
   const log = getAuditLog();
+  const user = getCurrentUser();
   log.push({
     id: uuidv4(),
     timestamp: new Date().toISOString(),
-    userId: 'tesoureiro',
+    userId: user?.username || 'sistema',
     acao,
     detalhes,
   });
-  // Keep only last 1000 entries
   if (log.length > 1000) log.splice(0, log.length - 1000);
   saveToStorage(STORAGE_KEYS.AUDIT_LOG, log);
 }
 
-// Config
+// ============ CONFIG ============
 export function getConfig(): AppConfig {
-  return getFromStorage<AppConfig>(STORAGE_KEYS.CONFIG, defaultConfig);
+  const config = getFromStorage<AppConfig>(STORAGE_KEYS.CONFIG, defaultConfig);
+  if (!config.remittanceRules) config.remittanceRules = defaultConfig.remittanceRules;
+  if (!config.congregacoes) config.congregacoes = [];
+  if (!config.regiao) config.regiao = defaultConfig.regiao;
+  if (!config.cidade) config.cidade = '';
+  if (!config.setor) config.setor = '';
+  return config;
 }
 
 export function saveConfig(config: AppConfig): void {
@@ -185,10 +269,64 @@ export function saveConfig(config: AppConfig): void {
   addAuditLog('CONFIG', 'Configurações atualizadas');
 }
 
-// Backup & Restore
+// ============ REMITTANCE RULES ============
+export function getRemittanceRules(): RemittanceRule[] {
+  const config = getConfig();
+  return config.remittanceRules || defaultConfig.remittanceRules;
+}
+
+export function getActiveRemittancePercentual(dateStr?: string): number {
+  const rules = getRemittanceRules();
+  const checkDate = dateStr || new Date().toISOString().split('T')[0];
+  
+  const applicable = rules
+    .filter(r => r.dataInicio <= checkDate && (!r.dataFim || r.dataFim >= checkDate))
+    .sort((a, b) => b.dataInicio.localeCompare(a.dataInicio));
+  
+  return applicable.length > 0 ? applicable[0].percentual : 20;
+}
+
+export function saveRemittanceRule(rule: RemittanceRule): void {
+  const config = getConfig();
+  const rules = config.remittanceRules || [];
+  const idx = rules.findIndex(r => r.id === rule.id);
+  if (idx >= 0) rules[idx] = rule;
+  else rules.push(rule);
+  config.remittanceRules = rules;
+  saveConfig(config);
+}
+
+export function deleteRemittanceRule(id: string): void {
+  const config = getConfig();
+  config.remittanceRules = (config.remittanceRules || []).filter(r => r.id !== id);
+  saveConfig(config);
+}
+
+// ============ CONGREGATIONS ============
+export function getCongregations(): Congregation[] {
+  return getConfig().congregacoes || [];
+}
+
+export function saveCongregation(cong: Congregation): void {
+  const config = getConfig();
+  const congs = config.congregacoes || [];
+  const idx = congs.findIndex(c => c.id === cong.id);
+  if (idx >= 0) congs[idx] = cong;
+  else congs.push(cong);
+  config.congregacoes = congs;
+  saveConfig(config);
+}
+
+export function deleteCongregation(id: string): void {
+  const config = getConfig();
+  config.congregacoes = (config.congregacoes || []).filter(c => c.id !== id);
+  saveConfig(config);
+}
+
+// ============ BACKUP & RESTORE ============
 export function createBackup(): BackupData {
-  const data: BackupData = {
-    version: '1.0.0',
+  const backup: BackupData = {
+    version: '2.0.0',
     timestamp: new Date().toISOString(),
     integrityKey: '',
     members: getMembers(),
@@ -196,40 +334,42 @@ export function createBackup(): BackupData {
     commitments: getCommitments(),
     auditLog: getAuditLog(),
     config: getConfig(),
+    users: getUsers(),
   };
-  const dataStr = JSON.stringify({ ...data, integrityKey: '' });
-  data.integrityKey = generateIntegrityKey(dataStr);
-  return data;
+  const str = JSON.stringify({ ...backup, integrityKey: '' });
+  backup.integrityKey = generateIntegrityKey(str);
+  return backup;
 }
 
-export function restoreBackup(data: BackupData): boolean {
-  const { integrityKey, ...rest } = data;
-  const dataStr = JSON.stringify({ ...rest, integrityKey: '' });
-  const expectedKey = generateIntegrityKey(dataStr);
+export function restoreBackup(backup: BackupData): boolean {
+  const { integrityKey, ...rest } = backup;
+  const str = JSON.stringify({ ...rest, integrityKey: '' });
+  const expectedKey = generateIntegrityKey(str);
   
   if (integrityKey !== expectedKey) {
     alert('⚠️ Chave de integridade inválida! Os dados podem ter sido corrompidos.');
     return false;
   }
 
-  saveToStorage(STORAGE_KEYS.MEMBERS, data.members);
-  saveToStorage(STORAGE_KEYS.TRANSACTIONS, data.transactions);
-  saveToStorage(STORAGE_KEYS.COMMITMENTS, data.commitments);
-  saveToStorage(STORAGE_KEYS.AUDIT_LOG, data.auditLog);
-  saveToStorage(STORAGE_KEYS.CONFIG, data.config);
+  saveToStorage(STORAGE_KEYS.MEMBERS, backup.members);
+  saveToStorage(STORAGE_KEYS.TRANSACTIONS, backup.transactions);
+  saveToStorage(STORAGE_KEYS.COMMITMENTS, backup.commitments);
+  saveToStorage(STORAGE_KEYS.AUDIT_LOG, backup.auditLog);
+  saveToStorage(STORAGE_KEYS.CONFIG, backup.config);
+  if (backup.users) saveToStorage(STORAGE_KEYS.USERS, backup.users);
   return true;
 }
 
-// CSV helpers
-export function exportToCSV(data: Record<string, any>[], filename: string): void {
-  if (data.length === 0) {
+// ============ CSV HELPERS ============
+export function exportToCSV(rows: Record<string, any>[], filename: string): void {
+  if (rows.length === 0) {
     alert('Nenhum dado para exportar.');
     return;
   }
-  const headers = Object.keys(data[0]);
+  const headers = Object.keys(rows[0]);
   const csvContent = [
     headers.join(';'),
-    ...data.map(row => headers.map(h => {
+    ...rows.map(row => headers.map(h => {
       const val = row[h];
       if (typeof val === 'string' && val.includes(';')) return `"${val}"`;
       return val ?? '';
@@ -247,7 +387,6 @@ export function exportToCSV(data: Record<string, any>[], filename: string): void
 export function parseCSV(text: string): Record<string, string>[] {
   const lines = text.split('\n').filter(l => l.trim());
   if (lines.length < 2) return [];
-  
   const headers = lines[0].split(';').map(h => h.trim().replace(/^"|"$/g, ''));
   return lines.slice(1).map(line => {
     const values = line.split(';').map(v => v.trim().replace(/^"|"$/g, ''));
@@ -257,15 +396,14 @@ export function parseCSV(text: string): Record<string, string>[] {
   });
 }
 
-// Template generators
 export function getMemberTemplate(): string {
-  return 'nome;cpf;email;telefone;endereco;dataNascimento;dataAdmissao;status;ministerios;observacoes\nJoão Silva;123.456.789-00;joao@email.com;(11) 99999-0000;Rua A, 123;01/01/1990;01/01/2020;ATIVO;Louvor;';
+  return 'nome;cpf;email;telefone;endereco;dataNascimento;dataAdmissao;status;ministerios;congregacao;observacoes\nJoão Silva;123.456.789-00;joao@email.com;(35) 99999-0000;Rua A, 123;01/01/1990;01/01/2020;ATIVO;Louvor;JACUÍ-MG;';
 }
 
 export function getTransactionTemplate(): string {
-  return 'data;tipo;categoria;valor;descricao;memberId\n01/01/2024;ENTRADA;DIZIMO;100.00;Dízimo João;MEMBRO_ID_AQUI\n01/01/2024;SAIDA;DESPESA_OPERACIONAL;500.00;Conta de luz;';
+  return 'data;tipo;categoria;valor;descricao;congregacao;memberId\n01/02/2026;ENTRADA;DIZIMO;2673.65;Dízimos congregação;JACUÍ-MG;\n01/02/2026;ENTRADA;OFERTA;360.15;Ofertas congregação;JACUÍ-MG;\n01/02/2026;SAIDA;JUBILADOS;750.00;Jubilados;JACUÍ-MG;';
 }
 
 export function getCommitmentTemplate(): string {
-  return 'descricao;valorTotal;valorParcela;dataVencimento;frequencia;status;categoria;observacoes\nAluguel;12000;1000;05/01/2024;MENSAL;PENDENTE;DESPESA_OPERACIONAL;Aluguel do templo';
+  return 'descricao;valorTotal;valorParcela;dataVencimento;frequencia;status;categoria;congregacao;observacoes\nAluguel;12000;1000;05/01/2024;MENSAL;PENDENTE;DESPESA_ALUGUEL;JACUÍ-MG;Aluguel do templo';
 }

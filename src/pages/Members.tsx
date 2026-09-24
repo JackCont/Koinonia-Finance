@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Search, Edit2, Trash2, X, User, Phone, Mail, MapPin } from 'lucide-react';
-import { getMembers, saveMember, deleteMember, getConfig } from '../store';
+import { getMembers, saveMember, deleteMember, getConfig, getCongregations } from '../store';
 import { Member, MemberStatus } from '../types';
 
 export default function Members() {
@@ -24,7 +24,7 @@ export default function Members() {
   const emptyMember: Member = {
     id: '', nome: '', cpf: '', email: '', telefone: '',
     endereco: '', dataNascimento: '', dataAdmissao: '',
-    status: 'ATIVO', ministerios: [], observacoes: '',
+    status: 'ATIVO', ministerios: [], congregacao: '', observacoes: '',
   };
 
   const [form, setForm] = useState<Member>(emptyMember);
@@ -205,6 +205,14 @@ export default function Members() {
                 <label className="text-sm font-medium text-slate-700 mb-1 block">Endereço</label>
                 <input type="text" value={form.endereco} onChange={e => setForm({...form, endereco: e.target.value})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Congregação</label>
+                <select value={form.congregacao} onChange={e => setForm({...form, congregacao: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                  <option value="">-- Selecione --</option>
+                  {getCongregations().map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

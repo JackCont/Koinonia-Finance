@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
-import { TrendingUp, TrendingDown, Users, DollarSign, ArrowUpRight, ArrowDownRight } from 'lucide-react';
-import { getTransactions, getMembers, getCommitments, getConfig } from '../store';
-import { format, startOfMonth, endOfMonth, isWithinInterval, parseISO } from 'date-fns';
+import { TrendingUp, TrendingDown, Users, DollarSign, ArrowUpRight, ArrowDownRight, BarChart3, PieChart, Target } from 'lucide-react';
+import { getTransactions, getMembers, getCommitments, getConfig, getActiveRemittancePercentual } from '../store';
+import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval, subMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 interface Props {
@@ -18,139 +18,198 @@ export default function Dashboard({ onNavigate }: Props) {
     const now = new Date();
     const monthStart = startOfMonth(now);
     const monthEnd = endOfMonth(now);
+    const prevMonthStart = startOfMonth(subMonths(now, 1));
+    const prevMonthEnd = endOfMonth(subMonths(now, 1));
 
-    const monthTransactions = transactions.filter(t => {
+    const monthTx = transactions.filter(t => {
       const d = parseISO(t.data);
       return isWithinInterval(d, { start: monthStart, end: monthEnd }) && !t.estornada;
     });
 
-    const entradas = monthTransactions
-      .filter(t => t.tipo === 'ENTRADA')
-      .reduce((sum, t) => sum + t.valor, 0);
-    
-    const saidas = monthTransactions
-      .filter(t => t.tipo === 'SAIDA')
-      .reduce((sum, t) => sum + t.valor, 0);
+    const prevMonthTx = transactions.filter(t => {
+      const d = parseISO(t.data);
+      return isWithinInterval(d, { start: prevMonthStart, end: prevMonthEnd }) && !t.estornada;
+    });
 
-    const totalEntradas = transactions
-      .filter(t => t.tipo === 'ENTRADA' && !t.estornada)
-      .reduce((sum, t) => sum + t.valor, 0);
-    
-    const totalSaidas = transactions
-      .filter(t => t.tipo === 'SAIDA' && !t.estornada)
-      .reduce((sum, t) => sum + t.valor, 0);
+    const entradas = monthTx.filter(t => t.tipo === 'ENTRADA').reduce((s, t) => s + t.valor, 0);
+    const saidas = monthTx.filter(t => t.tipo === 'SAIDA').reduce((s, t) => s + t.valor, 0);
+    const prevEntradas = prevMonthTx.filter(t => t.tipo === 'ENTRADA').reduce((s, t) => s + t.valor, 0);
+    const prevSaidas = prevMonthTx.filter(t => t.tipo === 'SAIDA').reduce((s, t) => s + t.valor, 0);
 
-    const dizimos = monthTransactions
-      .filter(t => t.categoria === 'DIZIMO')
-      .reduce((sum, t) => sum + t.valor, 0);
+    const totalEntradas = transactions.filter(t => t.tipo === 'ENTRADA' && !t.estornada).reduce((s, t) => s + t.valor, 0);
+    const totalSaidas = transactions.filter(t => t.tipo === 'SAIDA' && !t.estornada).reduce((s, t) => s + t.valor, 0);
 
-    const ofertas = monthTransactions
-      .filter(t => t.categoria === 'OFERTA')
-      .reduce((sum, t) => sum + t.valor, 0);
+    const dizimos = monthTx.filter(t => t.categoria === 'DIZIMO').reduce((s, t) => s + t.valor, 0);
+    const ofertas = monthTx.filter(t => t.categoria === 'OFERTA').reduce((s, t) => s + t.valor, 0);
+    const remessa = dizimos * getActiveRemittancePercentual() / 100;
 
-    const compromissosPendentes = commitments.filter(c => c.status === 'PENDENTE').length;
+    // Top contributors this month
+    const memberContribs: Record<string, { nome: string; total: number }> = {};
+    monthTx.filter(t => t.memberId).forEach(t => {
+      const member = members.find(m => m.id === t.memberId);
+      if (!member) return;
+      if (!memberContribs[t.memberId!]) memberContribs[t.memberId!] = { nome: member.nome, total: 0 };
+      memberContribs[t.memberId!].total += t.valor;
+    });
+    const topContributors = Object.values(memberContribs).sort((a, b) => b.total - a.total).slice(0, 5);
+
+    // Category breakdown
+    const categoryBreakdown: Record<string, number> = {};
+    monthTx.forEach(t => {
+      categoryBreakdown[t.categoria] = (categoryBreakdown[t.categoria] || 0) + t.valor;
+    });
+
+    // Monthly trend (last 6 months)
+    const monthlyTrend = Array.from({ length: 6 }, (_, i) => {
+      const date = subMonths(now, 5 - i);
+      const mStart = startOfMonth(date);
+      const mEnd = endOfMonth(date);
+      const mTx = transactions.filter(t => {
+        const d = parseISO(t.data);
+        return isWithinInterval(d, { start: mStart, end: mEnd }) && !t.estornada;
+      });
+      return {
+        month: format(date, 'MMM', { locale: ptBR }),
+        entradas: mTx.filter(t => t.tipo === 'ENTRADA').reduce((s, t) => s + t.valor, 0),
+        saidas: mTx.filter(t => t.tipo === 'SAIDA').reduce((s, t) => s + t.valor, 0),
+      };
+    });
+
+    const entradaTrend = prevEntradas > 0 ? ((entradas - prevEntradas) / prevEntradas * 100) : 0;
 
     return {
       entradas, saidas, saldo: entradas - saidas,
       totalEntradas, totalSaidas, saldoTotal: totalEntradas - totalSaidas,
-      dizimos, ofertas,
+      dizimos, ofertas, remessa,
       totalMembros: members.filter(m => m.status === 'ATIVO').length,
-      compromissosPendentes,
-      totalTransacoes: monthTransactions.length,
+      compromissosPendentes: commitments.filter(c => c.status === 'PENDENTE').length,
+      totalTransacoes: monthTx.length,
+      topContributors, categoryBreakdown, monthlyTrend,
+      entradaTrend,
     };
   }, [transactions, members, commitments]);
 
-  const recentTransactions = useMemo(() => {
-    return [...transactions]
-      .filter(t => !t.estornada)
-      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 8);
-  }, [transactions]);
-
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+  const maxTrend = Math.max(...stats.monthlyTrend.map(m => Math.max(m.entradas, m.saidas)), 1);
 
   return (
     <div className="space-y-6">
-      {/* Church name */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white shadow-xl shadow-indigo-200">
         <h1 className="text-2xl font-bold">{config.nomeIgreja}</h1>
         <p className="text-indigo-200 mt-1">
-          {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          {config.regiao} • {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
         </p>
       </div>
 
-      {/* Stats cards */}
+      {/* Main stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          title="Entradas do Mês"
-          value={formatCurrency(stats.entradas)}
-          icon={<TrendingUp size={20} />}
-          color="emerald"
-          trend={stats.entradas > 0 ? 'up' : undefined}
-        />
-        <StatCard
-          title="Saídas do Mês"
-          value={formatCurrency(stats.saidas)}
-          icon={<TrendingDown size={20} />}
-          color="red"
-          trend={stats.saidas > 0 ? 'down' : undefined}
-        />
-        <StatCard
-          title="Saldo do Mês"
-          value={formatCurrency(stats.saldo)}
-          icon={<DollarSign size={20} />}
-          color={stats.saldo >= 0 ? 'blue' : 'amber'}
-        />
-        <StatCard
-          title="Membros Ativos"
-          value={stats.totalMembros.toString()}
-          icon={<Users size={20} />}
-          color="purple"
-        />
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Entradas do Mês</p>
+              <p className="text-xl font-bold text-slate-800">{formatCurrency(stats.entradas)}</p>
+              {stats.entradaTrend !== 0 && (
+                <p className={`text-xs mt-1 ${stats.entradaTrend > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  {stats.entradaTrend > 0 ? '↑' : '↓'} {Math.abs(stats.entradaTrend).toFixed(1)}% vs mês anterior
+                </p>
+              )}
+            </div>
+            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+              <TrendingUp size={20} className="text-emerald-500" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Saídas do Mês</p>
+              <p className="text-xl font-bold text-slate-800">{formatCurrency(stats.saidas)}</p>
+            </div>
+            <div className="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+              <TrendingDown size={20} className="text-red-500" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Saldo do Mês</p>
+              <p className={`text-xl font-bold ${stats.saldo >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>{formatCurrency(stats.saldo)}</p>
+            </div>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stats.saldo >= 0 ? 'bg-blue-50' : 'bg-amber-50'}`}>
+              <DollarSign size={20} className={stats.saldo >= 0 ? 'text-blue-500' : 'text-amber-500'} />
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Membros Ativos</p>
+              <p className="text-xl font-bold text-slate-800">{stats.totalMembros}</p>
+            </div>
+            <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center">
+              <Users size={20} className="text-purple-500" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Secondary stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Dízimos (mês)</p>
-              <p className="text-xl font-bold text-emerald-600">{formatCurrency(stats.dizimos)}</p>
-            </div>
-            <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
-              <ArrowUpRight size={20} className="text-emerald-500" />
-            </div>
-          </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+          <p className="text-xs text-emerald-600 font-medium">Dízimos (mês)</p>
+          <p className="text-lg font-bold text-emerald-700">{formatCurrency(stats.dizimos)}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Ofertas (mês)</p>
-              <p className="text-xl font-bold text-blue-600">{formatCurrency(stats.ofertas)}</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-              <ArrowUpRight size={20} className="text-blue-500" />
-            </div>
-          </div>
+        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+          <p className="text-xs text-blue-600 font-medium">Ofertas (mês)</p>
+          <p className="text-lg font-bold text-blue-700">{formatCurrency(stats.ofertas)}</p>
         </div>
-        <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-slate-500">Compromissos Pendentes</p>
-              <p className="text-xl font-bold text-amber-600">{stats.compromissosPendentes}</p>
-            </div>
-            <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-              <ArrowDownRight size={20} className="text-amber-500" />
-            </div>
-          </div>
+        <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+          <p className="text-xs text-indigo-600 font-medium">Remessa ({getActiveRemittancePercentual()}%)</p>
+          <p className="text-lg font-bold text-indigo-700">{formatCurrency(stats.remessa)}</p>
+        </div>
+        <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
+          <p className="text-xs text-amber-600 font-medium">Compromissos Pendentes</p>
+          <p className="text-lg font-bold text-amber-700">{stats.compromissosPendentes}</p>
         </div>
       </div>
 
-      {/* Balance & Recent */}
+      {/* Charts and details */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Overall balance */}
-        <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <h3 className="font-semibold text-slate-800 mb-4">Saldo Acumulado</h3>
+        {/* Monthly trend */}
+        <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <BarChart3 size={18} /> Tendência Mensal (últimos 6 meses)
+          </h3>
+          <div className="space-y-3">
+            {stats.monthlyTrend.map(m => (
+              <div key={m.month} className="flex items-center gap-3">
+                <span className="text-xs text-slate-500 w-10 capitalize">{m.month}</span>
+                <div className="flex-1 space-y-1">
+                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-400 rounded-full transition-all" style={{ width: `${(m.entradas / maxTrend) * 100}%` }} />
+                  </div>
+                  <div className="h-4 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-400 rounded-full transition-all" style={{ width: `${(m.saidas / maxTrend) * 100}%` }} />
+                  </div>
+                </div>
+                <span className="text-xs text-slate-500 w-24 text-right">{formatCurrency(m.entradas - m.saidas)}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-4 mt-4 text-xs text-slate-500">
+            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-emerald-400 rounded" /> Entradas</span>
+            <span className="flex items-center gap-1"><span className="w-3 h-3 bg-red-400 rounded" /> Saídas</span>
+          </div>
+        </div>
+
+        {/* Balance */}
+        <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <Target size={18} /> Saldo Acumulado
+          </h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-500">Total Entradas</span>
@@ -168,74 +227,83 @@ export default function Dashboard({ onNavigate }: Props) {
               </span>
             </div>
           </div>
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-slate-500">Repasse ({config.taxaDenominacional}%)</span>
-              <span className="font-medium text-indigo-600">
-                {formatCurrency(stats.dizimos * config.taxaDenominacional / 100)}
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent transactions */}
-        <div className="lg:col-span-2 bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-slate-800">Últimos Lançamentos</h3>
-            <button 
-              onClick={() => onNavigate('transactions')}
-              className="text-sm text-indigo-600 hover:text-indigo-700 font-medium"
-            >
-              Ver todos →
-            </button>
-          </div>
-          <div className="space-y-2">
-            {recentTransactions.length === 0 ? (
-              <p className="text-sm text-slate-400 text-center py-8">Nenhum lançamento registrado</p>
-            ) : (
-              recentTransactions.map(t => (
-                <div key={t.id} className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-slate-50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-2 h-2 rounded-full ${t.tipo === 'ENTRADA' ? 'bg-emerald-400' : 'bg-red-400'}`} />
-                    <div>
-                      <p className="text-sm font-medium text-slate-700">{t.descricao}</p>
-                      <p className="text-xs text-slate-400">{format(parseISO(t.data), 'dd/MM/yyyy')}</p>
-                    </div>
-                  </div>
-                  <span className={`text-sm font-semibold ${t.tipo === 'ENTRADA' ? 'text-emerald-600' : 'text-red-600'}`}>
-                    {t.tipo === 'ENTRADA' ? '+' : '-'}{formatCurrency(t.valor)}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
         </div>
       </div>
-    </div>
-  );
-}
 
-function StatCard({ title, value, icon, color, trend }: { 
-  title: string; value: string; icon: React.ReactNode; color: string; trend?: 'up' | 'down' 
-}) {
-  const colors: Record<string, string> = {
-    emerald: 'bg-emerald-50 text-emerald-600',
-    red: 'bg-red-50 text-red-600',
-    blue: 'bg-blue-50 text-blue-600',
-    purple: 'bg-purple-50 text-purple-600',
-    amber: 'bg-amber-50 text-amber-600',
-  };
+      {/* Top contributors & categories */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top contributors */}
+        <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <ArrowUpRight size={18} /> Maiores Contribuintes do Mês
+          </h3>
+          {stats.topContributors.length > 0 ? (
+            <div className="space-y-3">
+              {stats.topContributors.map((c, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="w-6 h-6 bg-indigo-100 text-indigo-700 rounded-full flex items-center justify-center text-xs font-bold">{i + 1}</span>
+                    <span className="text-sm text-slate-700">{c.nome}</span>
+                  </div>
+                  <span className="text-sm font-semibold text-emerald-600">{formatCurrency(c.total)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400 text-center py-4">Nenhum contribuinte registrado neste mês</p>
+          )}
+        </div>
 
-  return (
-    <div className="bg-white rounded-xl p-5 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">{title}</p>
-          <p className="text-xl font-bold text-slate-800 mt-1">{value}</p>
+        {/* Category breakdown */}
+        <div className="bg-white rounded-xl border border-slate-200 p-6">
+          <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+            <PieChart size={18} /> Movimentação por Categoria
+          </h3>
+          {Object.keys(stats.categoryBreakdown).length > 0 ? (
+            <div className="space-y-2">
+              {Object.entries(stats.categoryBreakdown)
+                .sort(([, a], [, b]) => b - a)
+                .slice(0, 6)
+                .map(([cat, val]) => {
+                  const total = Object.values(stats.categoryBreakdown).reduce((s, v) => s + v, 0);
+                  const pct = (val / total * 100);
+                  const catConfig = config.categories.find(c => c.nome === cat);
+                  return (
+                    <div key={cat} className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full" style={{ backgroundColor: catConfig?.cor || '#64748b' }} />
+                      <span className="text-xs text-slate-600 w-28 truncate">{cat}</span>
+                      <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: catConfig?.cor || '#64748b' }} />
+                      </div>
+                      <span className="text-xs text-slate-500 w-16 text-right">{formatCurrency(val)}</span>
+                    </div>
+                  );
+                })}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-400 text-center py-4">Nenhuma movimentação neste mês</p>
+          )}
         </div>
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${colors[color] || colors.blue}`}>
-          {icon}
-        </div>
+      </div>
+
+      {/* Quick actions */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <button onClick={() => onNavigate('transactions')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
+          <ArrowUpRight size={20} className="mx-auto text-indigo-500 mb-2" />
+          <p className="text-xs font-medium text-slate-700">Novo Lançamento</p>
+        </button>
+        <button onClick={() => onNavigate('members')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
+          <Users size={20} className="mx-auto text-purple-500 mb-2" />
+          <p className="text-xs font-medium text-slate-700">Cadastrar Membro</p>
+        </button>
+        <button onClick={() => onNavigate('remittance')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
+          <DollarSign size={20} className="mx-auto text-emerald-500 mb-2" />
+          <p className="text-xs font-medium text-slate-700">Gerar Remessa</p>
+        </button>
+        <button onClick={() => onNavigate('reports')} className="p-4 bg-white rounded-xl border border-slate-200 hover:border-indigo-300 hover:shadow-sm transition-all text-center">
+          <BarChart3 size={20} className="mx-auto text-amber-500 mb-2" />
+          <p className="text-xs font-medium text-slate-700">Relatórios</p>
+        </button>
       </div>
     </div>
   );

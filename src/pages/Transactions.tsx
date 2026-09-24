@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter } from 'lucide-react';
-import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig } from '../store';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations } from '../store';
 import { Transaction, TransactionType, TransactionCategory } from '../types';
 import { format, parseISO } from 'date-fns';
 
@@ -21,6 +21,7 @@ export default function Transactions() {
     categoria: 'DIZIMO',
     valor: 0,
     descricao: '',
+    congregacao: '',
     memberId: '',
     estornada: false,
   };
@@ -242,6 +243,14 @@ export default function Transactions() {
                 <label className="text-sm font-medium text-slate-700 mb-1 block">Descrição *</label>
                 <input type="text" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" placeholder="Ex: Dízimo João Silva" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Congregação</label>
+                <select value={form.congregacao} onChange={e => setForm({...form, congregacao: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                  <option value="">-- Selecione --</option>
+                  {getCongregations().map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

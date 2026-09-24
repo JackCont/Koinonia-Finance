@@ -1,8 +1,12 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ArrowLeftRight, TrendingUp, FileText, 
-  Settings, Download, Upload, Menu, X, Church, ClipboardList
+  Settings, Download, Upload, Menu, X, Church, ClipboardList,
+  Shield, LogOut, FileSpreadsheet
 } from 'lucide-react';
+import { getCurrentUser, logout } from './store';
+import { User } from './types';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
 import Transactions from './pages/Transactions';
@@ -11,23 +15,65 @@ import Reports from './pages/Reports';
 import SettingsPage from './pages/Settings';
 import ImportExport from './pages/ImportExport';
 import Commitments from './pages/Commitments';
+import AdminUsers from './pages/AdminUsers';
+import Remittance from './pages/Remittance';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments';
+type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance';
 
-const navItems: { id: Page; label: string; icon: React.ReactNode }[] = [
-  { id: 'dashboard', label: 'Painel', icon: <LayoutDashboard size={20} /> },
-  { id: 'members', label: 'Membros', icon: <Users size={20} /> },
-  { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} /> },
-  { id: 'commitments', label: 'Compromissos', icon: <ClipboardList size={20} /> },
-  { id: 'cashflow', label: 'Fluxo de Caixa', icon: <TrendingUp size={20} /> },
-  { id: 'reports', label: 'Relatórios', icon: <FileText size={20} /> },
-  { id: 'importexport', label: 'Importar/Exportar', icon: <Download size={20} /> },
-  { id: 'settings', label: 'Configurações', icon: <Settings size={20} /> },
+interface NavItem {
+  id: Page;
+  label: string;
+  icon: React.ReactNode;
+  roles: string[];
+}
+
+const navItems: NavItem[] = [
+  { id: 'dashboard', label: 'Painel', icon: <LayoutDashboard size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
+  { id: 'members', label: 'Membros', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'commitments', label: 'Compromissos', icon: <ClipboardList size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'remittance', label: 'Remessa Mensal', icon: <FileSpreadsheet size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONTADOR'] },
+  { id: 'cashflow', label: 'Fluxo de Caixa', icon: <TrendingUp size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
+  { id: 'reports', label: 'Relatórios', icon: <FileText size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
+  { id: 'importexport', label: 'Importar/Exportar', icon: <Download size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'admin', label: 'Administração', icon: <Shield size={20} />, roles: ['MASTER', 'ADMIN'] },
+  { id: 'settings', label: 'Configurações', icon: <Settings size={20} />, roles: ['MASTER', 'ADMIN'] },
 ];
 
 export default function App() {
+  const [user, setUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    if (currentUser) setUser(currentUser);
+    setLoading(false);
+  }, []);
+
+  const handleLogin = (loggedUser: User) => {
+    setUser(loggedUser);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 to-purple-900 flex items-center justify-center">
+        <div className="text-white text-lg">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  const userNavItems = navItems.filter(item => item.roles.includes(user.role));
 
   const renderPage = () => {
     switch (currentPage) {
@@ -35,12 +81,22 @@ export default function App() {
       case 'members': return <Members />;
       case 'transactions': return <Transactions />;
       case 'commitments': return <Commitments />;
+      case 'remittance': return <Remittance />;
       case 'cashflow': return <CashFlow />;
       case 'reports': return <Reports />;
       case 'settings': return <SettingsPage />;
       case 'importexport': return <ImportExport />;
+      case 'admin': return <AdminUsers />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
+  };
+
+  const roleLabels: Record<string, string> = {
+    MASTER: 'Master',
+    ADMIN: 'Administrador',
+    TESOURARIA: 'Tesouraria',
+    CONSELHO: 'Conselho Fiscal',
+    CONTADOR: 'Contador',
   };
 
   return (
@@ -64,8 +120,8 @@ export default function App() {
           </div>
         </div>
         
-        <nav className="p-4 space-y-1">
-          {navItems.map(item => (
+        <nav className="p-4 space-y-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+          {userNavItems.map(item => (
             <button
               key={item.id}
               onClick={() => { setCurrentPage(item.id); setSidebarOpen(false); }}
@@ -83,49 +139,47 @@ export default function App() {
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-indigo-700/50">
           <div className="bg-white/5 rounded-xl p-3 backdrop-blur-sm">
-            <p className="text-indigo-300 text-xs">Armazenamento Local</p>
-            <p className="text-white text-xs mt-1">Dados salvos no navegador</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-white text-xs font-medium truncate">{user.nome}</p>
+                <p className="text-indigo-300 text-xs">{roleLabels[user.role]}</p>
+              </div>
+              <button onClick={handleLogout} className="p-2 text-indigo-300 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Sair">
+                <LogOut size={16} />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Main content */}
       <main className="flex-1 min-h-screen overflow-auto">
-        {/* Top bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 px-4 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="lg:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors"
-              >
+              <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-lg hover:bg-slate-100">
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <h2 className="text-lg font-semibold text-slate-800">
-                {navItems.find(n => n.id === currentPage)?.label || 'Painel'}
+                {userNavItems.find(n => n.id === currentPage)?.label || 'Painel'}
               </h2>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setCurrentPage('importexport')}
-                className="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
-              >
-                <Upload size={16} />
-                <span className="hidden sm:inline">Backup</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-500 hidden sm:block">
+                {user.nome} • <span className="text-indigo-600 font-medium">{roleLabels[user.role]}</span>
+              </span>
+              <button onClick={handleLogout} className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Sair">
+                <LogOut size={18} />
               </button>
             </div>
           </div>
         </header>
 
-        {/* Page content */}
         <div className="p-4 lg:p-8">
           {renderPage()}
         </div>

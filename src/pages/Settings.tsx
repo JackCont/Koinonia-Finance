@@ -1,11 +1,14 @@
 import { useState } from 'react';
-import { Save, Plus, X, Trash2 } from 'lucide-react';
-import { getConfig, saveConfig } from '../store';
-import { AppConfig, CategoryConfig } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+import { Save, Plus, X, Trash2, Calendar, Building2, Percent } from 'lucide-react';
+import { getConfig, saveConfig, saveRemittanceRule, deleteRemittanceRule, saveCongregation, deleteCongregation } from '../store';
+import { AppConfig, CategoryConfig, RemittanceRule, Congregation } from '../types';
 
 export default function SettingsPage() {
   const [config, setConfig] = useState<AppConfig>(getConfig());
   const [saved, setSaved] = useState(false);
+  const [showRuleForm, setShowRuleForm] = useState(false);
+  const [showCongForm, setShowCongForm] = useState(false);
 
   const handleSave = () => {
     saveConfig(config);
@@ -13,21 +16,55 @@ export default function SettingsPage() {
     setTimeout(() => setSaved(false), 3000);
   };
 
+  // Remittance rules
+  const emptyRule: Omit<RemittanceRule, 'id' | 'createdAt'> = {
+    percentual: 20, dataInicio: '', dataFim: '', descricao: '',
+  };
+  const [ruleForm, setRuleForm] = useState(emptyRule);
+
+  const handleSaveRule = () => {
+    if (!ruleForm.dataInicio || ruleForm.percentual < 0) {
+      alert('Data de início e percentual são obrigatórios');
+      return;
+    }
+    const rule: RemittanceRule = {
+      ...ruleForm,
+      id: uuidv4(),
+      createdAt: new Date().toISOString(),
+    };
+    saveRemittanceRule(rule);
+    setConfig(getConfig());
+    setShowRuleForm(false);
+    setRuleForm(emptyRule);
+  };
+
+  // Congregations
+  const emptyCong: Omit<Congregation, 'id'> = {
+    nome: '', cidade: '', setor: '', pastor: '', ativo: true,
+  };
+  const [congForm, setCongForm] = useState(emptyCong);
+
+  const handleSaveCong = () => {
+    if (!congForm.nome.trim()) {
+      alert('Nome da congregação é obrigatório');
+      return;
+    }
+    const cong: Congregation = { ...congForm, id: uuidv4() };
+    saveCongregation(cong);
+    setConfig(getConfig());
+    setShowCongForm(false);
+    setCongForm(emptyCong);
+  };
+
   const addCategory = () => {
     const newCat: CategoryConfig = {
-      id: Date.now().toString(),
-      nome: 'Nova Categoria',
-      tipo: 'ENTRADA',
-      cor: '#6366f1',
+      id: Date.now().toString(), nome: 'Nova Categoria', tipo: 'ENTRADA', cor: '#6366f1',
     };
     setConfig({ ...config, categories: [...config.categories, newCat] });
   };
 
   const updateCategory = (id: string, updates: Partial<CategoryConfig>) => {
-    setConfig({
-      ...config,
-      categories: config.categories.map(c => c.id === id ? { ...c, ...updates } : c)
-    });
+    setConfig({ ...config, categories: config.categories.map(c => c.id === id ? { ...c, ...updates } : c) });
   };
 
   const deleteCategory = (id: string) => {
@@ -41,34 +78,45 @@ export default function SettingsPage() {
     }
   };
 
-  const removeMinisterio = (min: string) => {
-    setConfig({ ...config, ministerios: config.ministerios.filter(m => m !== min) });
-  };
-
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-5xl">
       {/* Church info */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 className="font-semibold text-slate-800 mb-4">Dados da Igreja</h3>
+        <h3 className="font-semibold text-slate-800 mb-4">Dados da Igreja / Região</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-slate-700 mb-1 block">Nome da Igreja</label>
             <input type="text" value={config.nomeIgreja} onChange={e => setConfig({...config, nomeIgreja: e.target.value})}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700 mb-1 block">CNPJ</label>
             <input type="text" value={config.cnpj} onChange={e => setConfig({...config, cnpj: e.target.value})}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" placeholder="00.000.000/0000-00" />
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
           </div>
-          <div className="md:col-span-2">
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Endereço</label>
-            <input type="text" value={config.endereco} onChange={e => setConfig({...config, endereco: e.target.value})}
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Região</label>
+            <input type="text" value={config.regiao} onChange={e => setConfig({...config, regiao: e.target.value})}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" placeholder="Ex: SUL DE MINAS GERAIS" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Cidade</label>
+            <input type="text" value={config.cidade} onChange={e => setConfig({...config, cidade: e.target.value})}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" placeholder="Ex: JACUÍ-MG" />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Setor</label>
+            <input type="text" value={config.setor} onChange={e => setConfig({...config, setor: e.target.value})}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700 mb-1 block">Pastor Presidente</label>
             <input type="text" value={config.pastorPresidente} onChange={e => setConfig({...config, pastorPresidente: e.target.value})}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+          </div>
+          <div className="md:col-span-2">
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Endereço</label>
+            <input type="text" value={config.endereco} onChange={e => setConfig({...config, endereco: e.target.value})}
               className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
           </div>
           <div>
@@ -79,25 +127,160 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Financial rules */}
+      {/* Remittance Rules */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
-        <h3 className="font-semibold text-slate-800 mb-4">Regras Financeiras</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Taxa Denominacional (%)</label>
-            <input type="number" step="0.1" min="0" max="100" value={config.taxaDenominacional}
-              onChange={e => setConfig({...config, taxaDenominacional: parseFloat(e.target.value) || 0})}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
-            <p className="text-xs text-slate-400 mt-1">Percentual sobre dízimos para repasse à convenção</p>
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+              <Percent size={18} /> Regras de Remessa por Período
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Configure percentuais diferentes para períodos específicos. Se "Data Fim" estiver vazio, a regra permanece vigente até nova alteração.
+            </p>
           </div>
-          <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">Percentual de Repasse Geral (%)</label>
-            <input type="number" step="0.1" min="0" max="100" value={config.percentualRepasse}
-              onChange={e => setConfig({...config, percentualRepasse: parseFloat(e.target.value) || 0})}
-              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
-            <p className="text-xs text-slate-400 mt-1">Percentual padrão para repasses</p>
-          </div>
+          <button onClick={() => { setRuleForm(emptyRule); setShowRuleForm(true); }}
+            className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium px-3 py-2 bg-indigo-50 rounded-lg">
+            <Plus size={14} /> Nova Regra
+          </button>
         </div>
+
+        <div className="space-y-2">
+          {(config.remittanceRules || []).sort((a, b) => b.dataInicio.localeCompare(a.dataInicio)).map(rule => (
+            <div key={rule.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-4 gap-2 text-sm">
+                <div>
+                  <span className="text-xs text-slate-400">Percentual</span>
+                  <p className="font-bold text-indigo-700">{rule.percentual}%</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Início</span>
+                  <p className="text-slate-700">{rule.dataInicio ? new Date(rule.dataInicio + 'T12:00:00').toLocaleDateString('pt-BR') : '---'}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Fim</span>
+                  <p className="text-slate-700">{rule.dataFim ? new Date(rule.dataFim + 'T12:00:00').toLocaleDateString('pt-BR') : 'Vigente ∞'}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Descrição</span>
+                  <p className="text-slate-700 truncate">{rule.descricao || '---'}</p>
+                </div>
+              </div>
+              <button onClick={() => { deleteRemittanceRule(rule.id); setConfig(getConfig()); }}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={14} /></button>
+            </div>
+          ))}
+        </div>
+
+        {showRuleForm && (
+          <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+            <h4 className="text-sm font-medium text-indigo-800 mb-3">Nova Regra de Remessa</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Percentual (%)</label>
+                <input type="number" step="0.1" min="0" max="100" value={ruleForm.percentual}
+                  onChange={e => setRuleForm({...ruleForm, percentual: parseFloat(e.target.value) || 0})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Descrição</label>
+                <input type="text" value={ruleForm.descricao} onChange={e => setRuleForm({...ruleForm, descricao: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" placeholder="Ex: Redução temporária" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Data Início *</label>
+                <input type="date" value={ruleForm.dataInicio} onChange={e => setRuleForm({...ruleForm, dataInicio: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Data Fim (vazio = vigente)</label>
+                <input type="date" value={ruleForm.dataFim} onChange={e => setRuleForm({...ruleForm, dataFim: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => setShowRuleForm(false)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Cancelar</button>
+              <button onClick={handleSaveRule} className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Salvar Regra</button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Congregations */}
+      <div className="bg-white rounded-xl border border-slate-200 p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="font-semibold text-slate-800 flex items-center gap-2">
+              <Building2 size={18} /> Congregações
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">Cadastre as congregações para segmentar lançamentos e relatórios</p>
+          </div>
+          <button onClick={() => { setCongForm(emptyCong); setShowCongForm(true); }}
+            className="flex items-center gap-1 text-sm text-indigo-600 hover:text-indigo-700 font-medium px-3 py-2 bg-indigo-50 rounded-lg">
+            <Plus size={14} /> Nova Congregação
+          </button>
+        </div>
+
+        <div className="space-y-2">
+          {(config.congregacoes || []).map(cong => (
+            <div key={cong.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+              <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+                <div>
+                  <span className="text-xs text-slate-400">Nome</span>
+                  <p className="font-medium text-slate-700">{cong.nome}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Cidade</span>
+                  <p className="text-slate-700">{cong.cidade || '---'}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Pastor</span>
+                  <p className="text-slate-700">{cong.pastor || '---'}</p>
+                </div>
+                <div>
+                  <span className="text-xs text-slate-400">Setor</span>
+                  <p className="text-slate-700">{cong.setor || '---'}</p>
+                </div>
+              </div>
+              <button onClick={() => { deleteCongregation(cong.id); setConfig(getConfig()); }}
+                className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={14} /></button>
+            </div>
+          ))}
+          {(!config.congregacoes || config.congregacoes.length === 0) && (
+            <p className="text-sm text-slate-400 text-center py-4">Nenhuma congregação cadastrada</p>
+          )}
+        </div>
+
+        {showCongForm && (
+          <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+            <h4 className="text-sm font-medium text-indigo-800 mb-3">Nova Congregação</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Nome *</label>
+                <input type="text" value={congForm.nome} onChange={e => setCongForm({...congForm, nome: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" placeholder="Ex: JACUÍ-MG" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Cidade</label>
+                <input type="text" value={congForm.cidade} onChange={e => setCongForm({...congForm, cidade: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Pastor</label>
+                <input type="text" value={congForm.pastor} onChange={e => setCongForm({...congForm, pastor: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-slate-600 mb-1 block">Setor</label>
+                <input type="text" value={congForm.setor} onChange={e => setCongForm({...congForm, setor: e.target.value})}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => setShowCongForm(false)} className="px-3 py-1.5 text-sm border border-slate-200 rounded-lg hover:bg-slate-50">Cancelar</button>
+              <button onClick={handleSaveCong} className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">Salvar</button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Categories */}
@@ -108,25 +291,20 @@ export default function SettingsPage() {
             <Plus size={14} /> Adicionar
           </button>
         </div>
-        <div className="space-y-3">
+        <div className="space-y-2 max-h-64 overflow-y-auto">
           {config.categories.map(cat => (
-            <div key={cat.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+            <div key={cat.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
               <input type="color" value={cat.cor} onChange={e => updateCategory(cat.id, { cor: e.target.value })}
-                className="w-8 h-8 rounded-lg border-0 cursor-pointer" />
+                className="w-7 h-7 rounded border-0 cursor-pointer" />
               <input type="text" value={cat.nome} onChange={e => updateCategory(cat.id, { nome: e.target.value })}
-                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                className="flex-1 px-2 py-1.5 rounded border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
               <select value={cat.tipo} onChange={e => updateCategory(cat.id, { tipo: e.target.value as 'ENTRADA' | 'SAIDA' })}
-                className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                className="px-2 py-1.5 rounded border border-slate-200 text-xs focus:border-indigo-400 outline-none">
                 <option value="ENTRADA">Entrada</option>
                 <option value="SAIDA">Saída</option>
               </select>
-              {cat.tipo === 'ENTRADA' && cat.nome === 'Dízimo' && (
-                <input type="number" step="0.1" placeholder="% repasse" value={cat.percentualRepasse || ''}
-                  onChange={e => updateCategory(cat.id, { percentualRepasse: parseFloat(e.target.value) || 0 })}
-                  className="w-24 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
-              )}
-              <button onClick={() => deleteCategory(cat.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                <Trash2 size={14} />
+              <button onClick={() => deleteCategory(cat.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded">
+                <Trash2 size={12} />
               </button>
             </div>
           ))}
@@ -145,7 +323,7 @@ export default function SettingsPage() {
           {config.ministerios.map(min => (
             <span key={min} className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm">
               {min}
-              <button onClick={() => removeMinisterio(min)} className="ml-1 hover:text-red-600">
+              <button onClick={() => setConfig({...config, ministerios: config.ministerios.filter(m => m !== min)})} className="ml-1 hover:text-red-600">
                 <X size={12} />
               </button>
             </span>
@@ -153,15 +331,13 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Save button */}
+      {/* Save */}
       <div className="flex items-center gap-4">
         <button onClick={handleSave}
-          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
+          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 shadow-sm">
           <Save size={16} /> Salvar Configurações
         </button>
-        {saved && (
-          <span className="text-sm text-emerald-600 font-medium animate-pulse">✓ Configurações salvas com sucesso!</span>
-        )}
+        {saved && <span className="text-sm text-emerald-600 font-medium">✓ Salvo com sucesso!</span>}
       </div>
     </div>
   );

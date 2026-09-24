@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, X, Check, AlertCircle, Calendar } from 'lucide-react';
-import { getCommitments, saveCommitment, deleteCommitment, getConfig } from '../store';
+import { getCommitments, saveCommitment, deleteCommitment, getConfig, getCongregations } from '../store';
 import { Commitment, CommitmentStatus, TransactionCategory } from '../types';
 import { format, parseISO, isPast } from 'date-fns';
 
@@ -15,7 +15,7 @@ export default function Commitments() {
     descricao: '', valorTotal: 0, valorParcela: 0,
     dataVencimento: format(new Date(), 'yyyy-MM-dd'),
     frequencia: 'MENSAL', status: 'PENDENTE',
-    categoria: 'DESPESA_OPERACIONAL', observacoes: '',
+    categoria: 'DESPESA_DIVERSAS', congregacao: '', observacoes: '',
   };
 
   const [form, setForm] = useState(emptyCommitment);
@@ -171,6 +171,14 @@ export default function Commitments() {
                 <label className="text-sm font-medium text-slate-700 mb-1 block">Descrição *</label>
                 <input type="text" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" placeholder="Ex: Aluguel do templo" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Congregação</label>
+                <select value={form.congregacao} onChange={e => setForm({...form, congregacao: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                  <option value="">-- Selecione --</option>
+                  {getCongregations().map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

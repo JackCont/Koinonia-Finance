@@ -1,23 +1,49 @@
 // Types for Church Treasury Management System
 
 export type MemberStatus = 'ATIVO' | 'INATIVO' | 'TRANSFERIDO';
-
 export type TransactionType = 'ENTRADA' | 'SAIDA';
+export type CommitmentStatus = 'PENDENTE' | 'PAGO' | 'CANCELADO';
 
 export type TransactionCategory = 
-  | 'DIZIMO' 
-  | 'OFERTA' 
-  | 'DOACAO'
-  | 'DESPESA_OPERACIONAL' 
-  | 'DESPESA_MANUTENCAO'
-  | 'DESPESA_PESSOAL'
-  | 'DESPESA_MISSIONARIA'
-  | 'REPASSE_DENOMINACIONAL'
-  | 'PATRIMONIO'
-  | 'OUTRAS_RECEITAS'
-  | 'OUTRAS_DESPESAS';
+  | 'DIZIMO' | 'OFERTA' | 'DOACAO'
+  | 'DESPESA_AGUA' | 'DESPESA_LUZ' | 'DESPESA_ALUGUEL' | 'DESPESA_IPTU'
+  | 'DESPESA_JUBILADOS' | 'DESPESA_CEIA' | 'DESPESA_SECRETARIA' 
+  | 'DESPESA_LIMPEZA' | 'DESPESA_VIAGEM' | 'DESPESA_DIVERSAS'
+  | 'DESPESA_PESSOAL' | 'DESPESA_MANUTENCAO' | 'DESPESA_MISSIONARIA'
+  | 'REPASSE_DENOMINACIONAL' | 'PATRIMONIO'
+  | 'OUTRAS_RECEITAS' | 'OUTRAS_DESPESAS' | 'MISSOES';
 
-export type CommitmentStatus = 'PENDENTE' | 'PAGO' | 'CANCELADO';
+export type UserRole = 'MASTER' | 'ADMIN' | 'TESOURARIA' | 'CONSELHO' | 'CONTADOR';
+
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+  nome: string;
+  role: UserRole;
+  ativo: boolean;
+  congregacao: string;
+  createdAt: string;
+  lastLogin?: string;
+}
+
+export interface RemittanceRule {
+  id: string;
+  percentual: number;
+  dataInicio: string; // yyyy-MM-dd
+  dataFim: string;    // yyyy-MM-dd ou vazio = vigente
+  descricao: string;
+  createdAt: string;
+}
+
+export interface Congregation {
+  id: string;
+  nome: string;
+  cidade: string;
+  setor: string;
+  pastor: string;
+  ativo: boolean;
+}
 
 export interface Member {
   id: string;
@@ -30,6 +56,7 @@ export interface Member {
   dataAdmissao: string;
   status: MemberStatus;
   ministerios: string[];
+  congregacao: string;
   observacoes: string;
 }
 
@@ -41,6 +68,7 @@ export interface Transaction {
   valor: number;
   memberId?: string;
   descricao: string;
+  congregacao: string;
   documento?: string;
   estornada: boolean;
   estornoMotivo?: string;
@@ -56,6 +84,7 @@ export interface Commitment {
   frequencia: 'MENSAL' | 'TRIMESTRAL' | 'SEMESTRAL' | 'ANUAL' | 'UNICO';
   status: CommitmentStatus;
   categoria: TransactionCategory;
+  congregacao: string;
   observacoes: string;
 }
 
@@ -82,10 +111,15 @@ export interface AppConfig {
   endereco: string;
   pastorPresidente: string;
   tesoureiro: string;
+  regiao: string;
+  cidade: string;
+  setor: string;
   percentualRepasse: number;
   taxaDenominacional: number;
   categories: CategoryConfig[];
   ministerios: string[];
+  congregacoes: Congregation[];
+  remittanceRules: RemittanceRule[];
 }
 
 export interface BackupData {
@@ -97,4 +131,5 @@ export interface BackupData {
   commitments: Commitment[];
   auditLog: AuditLog[];
   config: AppConfig;
+  users: User[];
 }
