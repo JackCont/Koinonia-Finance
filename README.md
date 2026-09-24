@@ -1,197 +1,196 @@
-# Sistema de Tesouraria para Igrejas
+# ⛪ Gestão de Tesouraria - IEAD
 
-Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido com React, TypeScript e Vite.
-
-## 🚀 Funcionalidades
-
-### Gestão de Membros
-- Cadastro completo de membros e dizimistas
-- Controle de status (ativo/inativo/transferido)
-- Histórico de contribuições por membro
-- Exportação de relatórios
-
-### Lançamentos Financeiros
-- Registro de entradas (dízimos, ofertas, doações)
-- Registro de saídas (despesas operacionais, manutenção, pessoal)
-- Sistema de estorno com auditoria
-- Categorização completa de transações
-
-### Fluxo de Caixa
-- Visualização mensal e anual
-- Gráficos de tendência
-- Comparativo entre períodos
-- Saldo acumulado
-
-### Remessa Mensal
-- Geração automática de remessa denominacional
-- Percentuais configuráveis por período
-- Relatório completo de receitas e despesas
-- Exportação em formato padrão
-
-### Relatórios
-- Balancete de verificação
-- Relação de dizimistas
-- Histórico individual por membro
-- Resumo geral com gráficos
-
-### Segurança
-- Sistema de login com perfis de acesso
-- Controle de permissões por função
-- Backup com chave de integridade
-- Auditoria completa de alterações
-
-## 🔐 Perfis de Acesso
-
-- **MASTER**: Acesso total ao sistema
-- **ADMIN**: Gestão completa exceto usuários master
-- **TESOURARIA**: Lançamentos e relatórios financeiros
-- **CONSELHO**: Visualização de relatórios
-- **CONTADOR**: Acesso a relatórios contábeis
-
-## 💾 Armazenamento
-
-O sistema utiliza **localStorage** do navegador para armazenamento dos dados, com:
-- Backup criptografado com chave de integridade
-- Exportação/importação via CSV
-- Restauração completa de backups
-
-## 🛠️ Tecnologias
-
-- **React 18** - Framework UI
-- **TypeScript** - Tipagem estática
-- **Vite** - Build tool
-- **Tailwind CSS** - Estilização
-- **date-fns** - Manipulação de datas
-- **lucide-react** - Ícones
-- **uuid** - Geração de IDs únicos
-
-## 📦 Instalação
-
-```bash
-# Instalar dependências
-npm install
-
-# Rodar em desenvolvimento
-npm run dev
-
-# Build para produção
-npm run build
-
-# Preview da build
-npm run preview
-```
-
-## 🎯 Como Usar
-
-### Primeiro Acesso
-
-1. Abra o aplicativo no navegador
-2. Clique em "Acessar Sistema" na tela de boas-vindas
-3. Faça login com as credenciais padrão:
-   - **Usuário**: admin
-   - **Senha**: admin123
-
-### Configuração Inicial
-
-1. Acesse **Configurações** no menu lateral
-2. Preencha os dados da igreja (nome, CNPJ, endereço)
-3. Configure as congregações (se houver múltiplas)
-4. Ajuste as regras de remessa por período
-5. Personalize as categorias financeiras
-
-### Cadastro de Membros
-
-1. Acesse **Membros** no menu
-2. Clique em "Novo Membro"
-3. Preencha os dados (nome, CPF, contato, etc.)
-4. Selecione a congregação
-5. Defina os ministérios
-6. Salve o cadastro
-
-### Lançamentos Financeiros
-
-1. Acesse **Lançamentos** no menu
-2. Clique em "Novo Lançamento"
-3. Selecione o tipo (Entrada/Saída)
-4. Escolha a categoria
-5. Informe o valor e descrição
-6. Vincule a um membro (opcional)
-7. Salve o lançamento
-
-### Geração de Remessa
-
-1. Acesse **Remessa Mensal** no menu
-2. Selecione o mês de referência
-3. O sistema calcula automaticamente:
-   - Total de dízimos e ofertas
-   - Remessa denominacional (percentual configurado)
-   - Total de despesas por categoria
-   - Saldo final
-4. Exporte em CSV ou imprima o relatório
-
-### Backup e Restauração
-
-1. Acesse **Importar/Exportar** no menu
-2. Para backup:
-   - Clique em "Gerar Backup"
-   - O arquivo JSON será baixado
-3. Para restaurar:
-   - Clique em "Restaurar Backup"
-   - Selecione o arquivo JSON
-   - A chave de integridade será verificada
-
-## 📊 Modelos CSV
-
-O sistema fornece modelos CSV para importação em massa:
-
-### Membros
-```csv
-nome;cpf;email;telefone;endereco;dataNascimento;dataAdmissao;status;ministerios;congregacao;observacoes
-João Silva;123.456.789-00;joao@email.com;(35) 99999-0000;Rua A, 123;01/01/1990;01/01/2020;ATIVO;Louvor;JACUÍ-MG;
-```
-
-### Lançamentos
-```csv
-data;tipo;categoria;valor;descricao;congregacao;memberId
-01/02/2026;ENTRADA;DIZIMO;2673.65;Dízimos congregação;JACUÍ-MG;
-01/02/2026;SAIDA;LUZ;500.00;Conta de luz;JACUÍ-MG;
-```
-
-## 🔒 Segurança
-
-- Senhas armazenadas com hash
-- Chave de integridade em backups
-- Auditoria completa de alterações
-- Controle de acesso por perfis
-- Dados armazenados localmente
-
-## 📱 Responsivo
-
-O sistema é totalmente responsivo e funciona em:
-- Desktop
-- Tablet
-- Mobile
-
-## 🖨️ Impressão
-
-Relatórios otimizados para impressão:
-- Remessa mensal em formato paisagem
-- Balancetes e relatórios financeiros
-- Histórico de membros
-
-## 📝 Notas
-
-- Os dados são armazenados localmente no navegador
-- Faça backups regulares
-- Use navegadores modernos (Chrome, Firefox, Edge, Safari)
-- Recomendado: mantenha o sistema atualizado
-
-## 🤝 Suporte
-
-Para dúvidas ou suporte, consulte a documentação interna do sistema ou entre em contato com o administrador.
+Sistema completo de gestão financeira para igrejas evangélicas de pequeno e micro portes.
 
 ---
 
-**Versão**: 2.0.0  
-**Desenvolvido para**: Igrejas Evangélicas  
-**Licença**: Uso interno
+## 🚀 Como Iniciar o Aplicativo
+
+### Opção 1: Script Automático (Recomendado)
+
+**Windows:**
+```
+Clique duas vezes no arquivo: INICIAR.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x INICIAR.sh
+./INICIAR.sh
+```
+
+### Opção 2: Manual
+
+1. **Abra o terminal** na pasta do projeto
+2. **Instale as dependências** (apenas na primeira vez):
+   ```bash
+   npm install
+   ```
+3. **Inicie o servidor**:
+   ```bash
+   npm run dev
+   ```
+4. **Abra o navegador** em: `http://localhost:3000`
+
+---
+
+## 📋 Requisitos
+
+- **Node.js** versão 18 ou superior ([Download](https://nodejs.org/))
+- **Navegador** moderno (Chrome, Firefox, Edge, Safari)
+
+---
+
+## 🔐 Primeiro Acesso
+
+Após iniciar o servidor, acesse `http://localhost:3000` e use as credenciais fornecidas pelo administrador do sistema.
+
+**Credenciais padrão (apenas para configuração inicial):**
+- Usuário: `admin`
+- Senha: `admin123`
+
+⚠️ **Importante:** Altere a senha após o primeiro acesso!
+
+---
+
+## 📖 Funcionalidades
+
+### 🏠 Painel (Dashboard)
+- Visão geral das finanças
+- Gráficos de tendência
+- Maiores contribuintes
+- Ações rápidas
+
+### 👥 Membros
+- Cadastro completo de dizimistas
+- Histórico de contribuições
+- Ativação/desativação de membros
+- Importação via CSV
+
+### 💰 Lançamentos
+- Registro de dízimos e ofertas
+- Controle de despesas por categoria
+- Estorno de transações
+- Vínculo com membros
+
+### 📊 Compromissos
+- Controle de despesas fixas
+- Alertas de vencimento
+- Frequência personalizável
+
+### 📄 Remessa Mensal
+- Planilha no modelo oficial
+- Cálculo automático de remessa
+- Percentuais configuráveis por período
+- Impressão em paisagem
+
+### 💹 Fluxo de Caixa
+- Visão mensal e anual
+- Gráficos comparativos
+- Exportação em CSV
+
+### 📈 Relatórios
+- Balancete de verificação
+- Listagem de dizimistas
+- Histórico individual
+- Resumo geral
+
+### ⚙️ Configurações
+- Dados da igreja
+- Congregações
+- Regras de remessa por período
+- Categorias financeiras
+- Ministérios
+
+### 👤 Administração (Master/Admin)
+- Gestão de usuários
+- Perfis de acesso
+- Controle de permissões
+
+---
+
+## 💾 Backup e Restauração
+
+O sistema armazena todos os dados localmente no navegador com chave de integridade.
+
+**Fazer Backup:**
+1. Acesse "Importar/Exportar"
+2. Clique em "Gerar Backup"
+3. Salve o arquivo JSON
+
+**Restaurar Backup:**
+1. Acesse "Importar/Exportar"
+2. Clique em "Restaurar Backup"
+3. Selecione o arquivo JSON
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+├── src/
+│   ├── pages/          # Páginas do aplicativo
+│   ├── store.ts        # Gerenciamento de dados
+│   ├── types.ts        # Definições de tipos
+│   ├── App.tsx         # Componente principal
+│   └── main.tsx        # Ponto de entrada
+├── dist/               # Arquivos de produção (gerado pelo build)
+├── INICIAR.bat         # Script Windows
+├── INICIAR.sh          # Script Linux/Mac
+└── README.md           # Este arquivo
+```
+
+---
+
+## 🔧 Comandos Disponíveis
+
+| Comando | Descrição |
+|---------|-----------|
+| `npm run dev` | Inicia servidor de desenvolvimento |
+| `npm run build` | Gera versão de produção |
+| `npm run preview` | Visualiza versão de produção |
+
+---
+
+## 🆘 Solução de Problemas
+
+### Página em branco ao abrir
+- Verifique se o servidor está rodando (`npm run dev`)
+- Acesse `http://localhost:3000` (não abra o arquivo HTML diretamente)
+
+### Erro "Node.js não está instalado"
+- Instale o Node.js: https://nodejs.org/
+- Reinicie o terminal após instalar
+
+### Erro ao instalar dependências
+```bash
+npm cache clean --force
+npm install
+```
+
+### Porta 3000 já está em uso
+```bash
+# Windows
+netstat -ano | findstr :3000
+taskkill /PID <numero> /F
+
+# Linux/Mac
+lsof -ti:3000 | xargs kill -9
+```
+
+---
+
+## 📞 Suporte
+
+Para dúvidas ou problemas, entre em contato com o suporte técnico da sua região.
+
+---
+
+## 📝 Licença
+
+Sistema desenvolvido para uso interno da IEAD.
+
+---
+
+**Versão:** 2.0.0  
+**Última atualização:** 2026
