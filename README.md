@@ -4,39 +4,26 @@ Sistema de gestão financeira para igrejas.
 
 ## Como Usar
 
-### Método 1 (Recomendado):
+### Método Simples (Recomendado):
 1. Clique duas vezes em **INICIAR.bat**
-2. O navegador abrirá automaticamente
+2. Aguarde o navegador abrir automaticamente
 3. Login: `admin` / Senha: `admin123`
 
-### Método 2 (Manual):
-1. Abra o Prompt de Comando (cmd)
-2. Navegue até a pasta do projeto
-3. Execute: `python iniciar.py`
-4. Abra o navegador em: http://localhost:8080
-
-### Método 3 (Visual):
-1. Abra o arquivo **INICIAR.html** no navegador
-2. Siga as instruções na tela
+### Método Manual:
+```bash
+python iniciar.py
+```
 
 ## Requisitos
 
-- **Python 3** instalado
-  - Baixe em: https://python.org
-  - Durante instalação, marque: **"Add Python to PATH"**
+- **Python 3** instalado (https://python.org)
+- Marque **"Add Python to PATH"** durante instalação
 
-## Se Não Funcionar
+## Se Der Erro 404
 
-### Python não encontrado?
-1. Verifique: abra o cmd e digite `python --version`
-2. Se der erro, instale o Python
-3. **Importante:** marque "Add Python to PATH" durante instalação
-4. Reinicie o computador
-
-### Servidor não inicia?
-1. Verifique se a porta 8080 não está em uso
-2. Tente o método manual: `python iniciar.py`
-3. Verifique se está na pasta correta do projeto
+1. Execute: `npm run build`
+2. Verifique se a pasta `dist/` foi criada
+3. Execute novamente: `python iniciar.py`
 
 ## Login Padrão
 
@@ -47,10 +34,7 @@ Sistema de gestão financeira para igrejas.
 
 ## Backup
 
-Os dados são salvos no navegador. Faça backup regularmente:
-1. Acesse "Importar/Exportar"
-2. Clique em "Gerar Backup"
-3. Salve o arquivo em local seguro
+Os dados são salvos no navegador. Faça backup regularmente em "Importar/Exportar".
 
 ## Versão
 
