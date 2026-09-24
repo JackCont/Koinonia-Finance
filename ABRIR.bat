@@ -1,80 +1,69 @@
 @echo off
-chcp 65001 >nul
-title ⛪ Gestão de Tesouraria - IEAD
-color 0B
+title Tesouraria IEAD
 
 echo.
-echo ╔════════════════════════════════════════════════════════════╗
-echo ║                                                            ║
-echo ║           ⛪  GESTÃO DE TESOURARIA - IEAD  ⛪              ║
-echo ║                                                            ║
-echo ║         Sistema de Gestão Eclesiástica Integrada           ║
-echo ║                                                            ║
-echo ╚════════════════════════════════════════════════════════════╝
-echo.
-echo Iniciando o aplicativo...
+echo ================================================
+echo    TESOURARIA IEAD - Iniciando...
+echo ================================================
 echo.
 
-REM Verificar se Python está disponível
+REM Check if Python is available
 python --version >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    echo [OK] Python encontrado. Iniciando servidor local...
+    echo [OK] Python found. Starting local server...
     echo.
-    echo O aplicativo será aberto automaticamente no navegador.
-    echo Para fechar, pressione Ctrl+C nesta janela.
+    echo The app will open automatically in your browser.
+    echo To stop: close this window or press Ctrl+C
     echo.
-    echo ────────────────────────────────────────────────────────
+    echo ------------------------------------------------
     echo.
     
-    REM Abrir navegador após 2 segundos
+    REM Open browser after 2 seconds
     start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8080"
     
-    REM Iniciar servidor Python na pasta dist
+    REM Start server in dist folder
     cd dist
     python -m http.server 8080
     goto :eof
 )
 
-REM Verificar se Python3 está disponível
+REM Check if Python3 is available
 python3 --version >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
-    echo [OK] Python3 encontrado. Iniciando servidor local...
+    echo [OK] Python3 found. Starting local server...
     echo.
-    echo O aplicativo será aberto automaticamente no navegador.
-    echo Para fechar, pressione Ctrl+C nesta janela.
+    echo The app will open automatically in your browser.
+    echo To stop: close this window or press Ctrl+C
     echo.
-    echo ────────────────────────────────────────────────────────
+    echo ------------------------------------------------
     echo.
     
-    REM Abrir navegador após 2 segundos
+    REM Open browser after 2 seconds
     start "" cmd /c "timeout /t 2 /nobreak >nul && start http://localhost:8080"
     
-    REM Iniciar servidor Python na pasta dist
+    REM Start server in dist folder
     cd dist
     python3 -m http.server 8080
     goto :eof
 )
 
-REM Se não encontrou Python, mostrar instruções
+REM If Python not found, show instructions
 echo.
-echo [ERRO] Python não encontrado!
+echo [ERROR] Python not found!
 echo.
-echo ════════════════════════════════════════════════════════════
+echo ================================================
 echo.
-echo Para usar este aplicativo, você precisa instalar o Python.
+echo To use this app, you need to install Python.
 echo.
-echo PASSO 1: Baixe o Python em:
-echo          https://python.org/downloads/
+echo STEP 1: Download Python from:
+echo         https://python.org/downloads/
 echo.
-echo PASSO 2: Instale o Python (marque a opção "Add Python to PATH")
+echo STEP 2: Install Python (check "Add Python to PATH")
 echo.
-echo PASSO 3: Reinicie o computador
+echo STEP 3: Restart your computer
 echo.
-echo PASSO 4: Execute este arquivo (ABRIR.bat) novamente
+echo STEP 4: Run this file (ABRIR.bat) again
 echo.
-echo ════════════════════════════════════════════════════════════
-echo.
-echo Ou, se preferir, abra o arquivo INICIO.html no navegador
-echo para ver instruções detalhadas.
+echo ================================================
 echo.
 pause
