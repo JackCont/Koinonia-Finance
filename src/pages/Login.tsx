@@ -97,10 +97,10 @@ export default function Login({ onLogin }: Props) {
 
           {/* Footer */}
           <div className="mt-6 pt-4 border-t border-white/10 text-center">
-            <p className="text-xs text-indigo-300/70">
-              Usuário padrão: <span className="text-amber-300 font-mono">admin</span> / Senha: <span className="text-amber-300 font-mono">admin123</span>
+            <p className="text-xs text-indigo-300/50">
+              🔒 Acesso restrito a usuários autorizados
             </p>
-            <p className="text-xs text-indigo-300/50 mt-2">
+            <p className="text-xs text-indigo-300/40 mt-1">
               Armazenamento local seguro com chave de integridade
             </p>
           </div>

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { getCurrentUser, logout } from './store';
 import { User } from './types';
+import Welcome from './pages/Welcome';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Members from './pages/Members';
@@ -45,20 +46,26 @@ export default function App() {
   const [currentPage, setCurrentPage] = useState<Page>('dashboard');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showWelcome, setShowWelcome] = useState(true);
 
   useEffect(() => {
     const currentUser = getCurrentUser();
-    if (currentUser) setUser(currentUser);
+    if (currentUser) {
+      setUser(currentUser);
+      setShowWelcome(false);
+    }
     setLoading(false);
   }, []);
 
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
+    setShowWelcome(false);
   };
 
   const handleLogout = () => {
     logout();
     setUser(null);
+    setShowWelcome(true);
   };
 
   if (loading) {
@@ -67,6 +74,10 @@ export default function App() {
         <div className="text-white text-lg">Carregando...</div>
       </div>
     );
+  }
+
+  if (showWelcome) {
+    return <Welcome onStart={() => setShowWelcome(false)} />;
   }
 
   if (!user) {
