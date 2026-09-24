@@ -1,0 +1,47 @@
+COMO USAR O APLICATIVO
+======================
+
+PASSO 1: Instalar Node.js (se ainda nao tiver)
+-----------------------------------------------
+1. Acesse: https://nodejs.org
+2. Baixe a versao LTS
+3. Instale (marque "Add to PATH")
+4. Reinicie o computador
+
+
+PASSO 2: Iniciar o Aplicativo
+------------------------------
+Windows:
+   Clique duas vezes em: INICIAR.bat
+
+Linux/Mac:
+   No terminal: python3 iniciar.py
+
+
+PASSO 3: Aguardar
+-----------------
+- O navegador abrira automaticamente em: http://localhost:3000
+- Se nao abrir, acesse manualmente
+
+
+LOGIN
+-----
+Usuario: admin
+Senha: admin123
+
+
+PARA FECHAR
+-----------
+Feche a janela preta ou pressione Ctrl+C
+
+
+SE NAO FUNCIONAR
+----------------
+1. Verifique se Node.js esta instalado:
+   - Abra o cmd
+   - Digite: node --version
+   - Deve aparecer a versao
+
+2. Se nao estiver, instale em: https://nodejs.org
+
+3. Reinicie o computador e tente novamente

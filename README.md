@@ -1,41 +1,41 @@
 # Tesouraria IEAD
 
-Sistema de gestão financeira para igrejas.
+Sistema de gestão financeira para igrejas evangélicas.
 
 ## Como Usar
 
-### Método Simples (Recomendado):
+### Windows:
 1. Clique duas vezes em **INICIAR.bat**
 2. Aguarde o navegador abrir automaticamente
 3. Login: `admin` / Senha: `admin123`
 
-### Método Manual:
+### Linux/Mac:
 ```bash
-python iniciar.py
+chmod +x iniciar.py
+python3 iniciar.py
 ```
 
 ## Requisitos
 
-- **Python 3** instalado (https://python.org)
-- Marque **"Add Python to PATH"** durante instalação
+- **Python 3** instalado
+- **Node.js** instalado (https://nodejs.org)
 
-## Se Der Erro 404
+## Primeiro Acesso
 
-1. Execute: `npm run build`
-2. Verifique se a pasta `dist/` foi criada
-3. Execute novamente: `python iniciar.py`
+- Usuário: `admin`
+- Senha: `admin123`
 
-## Login Padrão
+**Importante:** Altere a senha após o primeiro acesso!
 
-- **Usuário:** admin
-- **Senha:** admin123
+## Funcionalidades
 
-⚠️ Altere a senha após o primeiro acesso!
+- Gestão de membros e dizimistas
+- Controle de dízimos e ofertas
+- Planilha de remessa mensal
+- Fluxo de caixa
+- Relatórios e balancetes
+- Backup e restauração
 
-## Backup
+## Suporte
 
-Os dados são salvos no navegador. Faça backup regularmente em "Importar/Exportar".
-
-## Versão
-
-2.0.0 - Desenvolvido para IEAD
+Para dúvidas, consulte o suporte técnico da sua região.
