@@ -9,6 +9,7 @@ export default function Remittance() {
   const transactions = getTransactions();
   const [selectedMonth, setSelectedMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [selectedCong, setSelectedCong] = useState('all');
+  const [filterByCompetencia, setFilterByCompetencia] = useState(false);
 
   const congregations = config.congregacoes.length > 0 
     ? config.congregacoes 
@@ -22,8 +23,17 @@ export default function Remittance() {
 
   const monthlyData = useMemo(() => {
     const monthTx = transactions.filter(t => {
-      const d = parseISO(t.data);
-      return d >= monthStart && d <= monthEnd && !t.estornada;
+      if (t.estornada) return false;
+      
+      if (filterByCompetencia) {
+        // Filtrar por competência
+        const comp = t.competencia || t.data.substring(0, 7);
+        return comp === selectedMonth;
+      } else {
+        // Filtrar por data de pagamento
+        const d = parseISO(t.data);
+        return d >= monthStart && d <= monthEnd;
+      }
     });
 
     return congregations.map(cong => {
@@ -131,6 +141,22 @@ export default function Remittance() {
           <option value="all">Todas as Congregações</option>
           {congregations.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
         </select>
+        <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1">
+          <button 
+            onClick={() => setFilterByCompetencia(false)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              !filterByCompetencia ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            Data Pagamento
+          </button>
+          <button 
+            onClick={() => setFilterByCompetencia(true)}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              filterByCompetencia ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            Competência
+          </button>
+        </div>
         <div className="flex-1" />
         <button onClick={handleExportCSV}
           className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700">
@@ -148,6 +174,14 @@ export default function Remittance() {
           <strong>Percentual de Remessa vigente:</strong> {remittancePercentual}% 
           <span className="text-indigo-500 ml-2">
             (Configurável em Configurações → Regras de Remessa por Período)
+          </span>
+        </p>
+        <p className="text-sm text-indigo-700 mt-2">
+          <strong>Modo de filtro:</strong> {filterByCompetencia ? 'Competência Contábil' : 'Data de Pagamento'}
+          <span className="text-indigo-500 ml-2">
+            {filterByCompetencia 
+              ? '(Mostra transações com competência no mês selecionado)' 
+              : '(Mostra transações pagas no mês selecionado)'}
           </span>
         </p>
       </div>
