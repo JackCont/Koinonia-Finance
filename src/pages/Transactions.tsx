@@ -141,14 +141,49 @@ export default function Transactions() {
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   
   const getCategoryName = (cat: string) => {
-    // Tenta encontrar por ID, nome ou constante normalizada
-    const c = config.categories.find(c => 
-      c.id === cat || 
-      c.nome === cat || 
-      c.nome.toUpperCase().replace(/\s+/g, '_') === cat ||
-      c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    );
-    return c?.nome || cat;
+    // Busca direta por ID ou nome
+    const c = config.categories.find(c => c.id === cat || c.nome === cat);
+    if (c) return c.nome;
+    
+    // Busca por nome normalizado (sem acentos, maiúsculas, sem espaços)
+    const normalizedCat = cat.toUpperCase().replace(/\s+/g, '_');
+    const c2 = config.categories.find(c => {
+      const normalizedName = c.nome.toUpperCase().replace(/\s+/g, '_');
+      return normalizedName === normalizedCat;
+    });
+    if (c2) return c2.nome;
+    
+    // Busca por nome sem acentos
+    const catSemAcento = cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const c3 = config.categories.find(c => {
+      const nomeSemAcento = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return nomeSemAcento === catSemAcento;
+    });
+    if (c3) return c3.nome;
+    
+    // Mapeamento direto de categorias normalizadas
+    const mapping: Record<string, string> = {
+      'DIZIMO': 'Dízimo',
+      'OFERTA': 'Oferta',
+      'DOACAO': 'Doação',
+      'MISSOES': 'Missões',
+      'OUTRAS_RECEITAS': 'Outras Receitas',
+      'PATRIMONIO': 'Patrimônio',
+      'DESPESA_AGUA': 'Água',
+      'DESPESA_LUZ': 'Luz',
+      'DESPESA_ALUGUEL': 'Aluguel',
+      'DESPESA_IPTU': 'IPTU',
+      'DESPESA_JUBILADOS': 'Jubilados',
+      'DESPESA_CEIA': 'Mat. Ceia',
+      'DESPESA_SECRETARIA': 'Mat. Secretaria',
+      'DESPESA_LIMPEZA': 'Mat. Limpeza',
+      'DESPESA_VIAGEM': 'Viagem',
+      'DESPESA_DIVERSAS': 'Despesas Diversas',
+      'DESPESA_PESSOAL': 'Pastor',
+      'OUTRAS_DESPESAS': 'Outras Despesas',
+    };
+    
+    return mapping[normalizedCat] || cat;
   };
 
   const getMemberName = (id?: string) => {
@@ -157,13 +192,27 @@ export default function Transactions() {
   };
 
   const getCategoryColor = (cat: string) => {
-    const c = config.categories.find(c => 
-      c.id === cat || 
-      c.nome === cat || 
-      c.nome.toUpperCase().replace(/\s+/g, '_') === cat ||
-      c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    );
-    return c?.cor || '#64748b';
+    // Busca direta por ID ou nome
+    const c = config.categories.find(c => c.id === cat || c.nome === cat);
+    if (c) return c.cor;
+    
+    // Busca por nome normalizado
+    const normalizedCat = cat.toUpperCase().replace(/\s+/g, '_');
+    const c2 = config.categories.find(c => {
+      const normalizedName = c.nome.toUpperCase().replace(/\s+/g, '_');
+      return normalizedName === normalizedCat;
+    });
+    if (c2) return c2.cor;
+    
+    // Busca por nome sem acentos
+    const catSemAcento = cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const c3 = config.categories.find(c => {
+      const nomeSemAcento = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      return nomeSemAcento === catSemAcento;
+    });
+    if (c3) return c3.cor;
+    
+    return '#64748b';
   };
 
   return (

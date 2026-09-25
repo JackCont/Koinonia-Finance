@@ -58,6 +58,7 @@ export interface Member {
   ministerios: string[];
   congregacao: string;
   observacoes: string;
+  foto?: string; // Base64 da imagem
 }
 
 export interface Transaction {

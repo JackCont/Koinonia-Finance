@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, Search, Edit2, Trash2, X, User, Phone, Mail, MapPin } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, User, Phone, Mail, MapPin, LayoutGrid, List, Camera } from 'lucide-react';
 import { getMembers, saveMember, deleteMember, getConfig, getCongregations } from '../store';
 import { Member, MemberStatus } from '../types';
 
@@ -10,7 +10,9 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const config = getConfig();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
     return members.filter(m => {
@@ -25,6 +27,7 @@ export default function Members() {
     id: '', nome: '', cpf: '', email: '', telefone: '',
     endereco: '', dataNascimento: '', dataAdmissao: '',
     status: 'ATIVO', ministerios: [], congregacao: '', observacoes: '',
+    foto: '',
   };
 
   const [form, setForm] = useState<Member>(emptyMember);
@@ -61,6 +64,17 @@ export default function Members() {
     }));
   };
 
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm(f => ({ ...f, foto: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const statusColors: Record<MemberStatus, string> = {
     ATIVO: 'bg-emerald-100 text-emerald-700',
     INATIVO: 'bg-slate-100 text-slate-600',
@@ -93,72 +107,155 @@ export default function Members() {
             <option value="TRANSFERIDO">Transferidos</option>
           </select>
         </div>
-        <button
-          onClick={() => { setForm(emptyMember); setEditing(null); setShowForm(true); }}
-          className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
-        >
-          <Plus size={16} /> Novo Membro
-        </button>
-      </div>
-
-      {/* Members list */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {filtered.map(m => (
-          <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <User size={18} className="text-indigo-600" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-800">{m.nome}</h3>
-                  <p className="text-xs text-slate-400">CPF: {m.cpf || '---'}</p>
-                </div>
-              </div>
-              <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[m.status]}`}>
-                {m.status}
-              </span>
-            </div>
-            
-            <div className="mt-3 space-y-1.5">
-              {m.telefone && (
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <Phone size={12} /> {m.telefone}
-                </div>
-              )}
-              {m.email && (
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <Mail size={12} /> {m.email}
-                </div>
-              )}
-              {m.endereco && (
-                <div className="flex items-center gap-2 text-xs text-slate-500">
-                  <MapPin size={12} /> {m.endereco}
-                </div>
-              )}
-            </div>
-
-            {m.ministerios.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1">
-                {m.ministerios.map(min => (
-                  <span key={min} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
-                    {min}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            <div className="mt-4 pt-3 border-t border-slate-100 flex gap-2">
-              <button onClick={() => handleEdit(m)} className="flex-1 flex items-center justify-center gap-1 text-xs py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
-                <Edit2 size={12} /> Editar
-              </button>
-              <button onClick={() => handleDelete(m.id)} className="flex-1 flex items-center justify-center gap-1 text-xs py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                <Trash2 size={12} /> Remover
-              </button>
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-2 rounded-lg transition-colors ${
+                viewMode === 'cards' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              }`}
+              title="Visualização em Cards"
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-lg transition-colors ${
+                viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              }`}
+              title="Visualização em Lista"
+            >
+              <List size={18} />
+            </button>
           </div>
-        ))}
+          <button
+            onClick={() => { setForm(emptyMember); setEditing(null); setShowForm(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus size={16} /> Novo Membro
+          </button>
+        </div>
       </div>
+
+      {/* Members List - Cards View */}
+      {viewMode === 'cards' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map(m => (
+            <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  {m.foto ? (
+                    <img src={m.foto} alt={m.nome} className="w-12 h-12 rounded-full object-cover border-2 border-indigo-200" />
+                  ) : (
+                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <User size={20} className="text-indigo-600" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-slate-800">{m.nome}</h3>
+                    <p className="text-xs text-slate-400">CPF: {m.cpf || '---'}</p>
+                  </div>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[m.status]}`}>
+                  {m.status}
+                </span>
+              </div>
+              
+              <div className="mt-3 space-y-1.5">
+                {m.telefone && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Phone size={12} /> {m.telefone}
+                  </div>
+                )}
+                {m.email && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Mail size={12} /> {m.email}
+                  </div>
+                )}
+                {m.endereco && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <MapPin size={12} /> {m.endereco}
+                  </div>
+                )}
+              </div>
+
+              {m.ministerios.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {m.ministerios.map(min => (
+                    <span key={min} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                      {min}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex gap-2">
+                <button onClick={() => handleEdit(m)} className="flex-1 flex items-center justify-center gap-1 text-xs py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                  <Edit2 size={12} /> Editar
+                </button>
+                <button onClick={() => handleDelete(m.id)} className="flex-1 flex items-center justify-center gap-1 text-xs py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <Trash2 size={12} /> Remover
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Members List - List View */}
+      {viewMode === 'list' && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Foto</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Nome</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">CPF</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Telefone</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Email</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Status</th>
+                  <th className="text-center px-4 py-3 font-medium text-slate-600">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map(m => (
+                  <tr key={m.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3">
+                      {m.foto ? (
+                        <img src={m.foto} alt={m.nome} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <User size={16} className="text-indigo-600" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-700">{m.nome}</td>
+                    <td className="px-4 py-3 text-slate-500">{m.cpf || '---'}</td>
+                    <td className="px-4 py-3 text-slate-500">{m.telefone || '---'}</td>
+                    <td className="px-4 py-3 text-slate-500">{m.email || '---'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[m.status]}`}>
+                        {m.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => handleEdit(m)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                          <Edit2 size={14} />
+                        </button>
+                        <button onClick={() => handleDelete(m.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {filtered.length === 0 && (
         <div className="text-center py-12">
@@ -176,6 +273,33 @@ export default function Members() {
               <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg">
                 <X size={18} />
               </button>
+            </div>
+
+            {/* Photo Upload */}
+            <div className="mb-6 flex flex-col items-center">
+              <div className="relative">
+                {form.foto ? (
+                  <img src={form.foto} alt="Foto" className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200" />
+                ) : (
+                  <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center border-4 border-indigo-200">
+                    <User size={40} className="text-indigo-400" />
+                  </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-lg"
+                >
+                  <Camera size={16} />
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              <p className="text-xs text-slate-500 mt-2">Clique na câmera para adicionar foto</p>
             </div>
 
             <div className="space-y-4">
@@ -211,7 +335,7 @@ export default function Members() {
                 <select value={form.congregacao} onChange={e => setForm({...form, congregacao: e.target.value})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
                   <option value="">-- Selecione --</option>
-                  {getCongregations().map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                  {getCongregations().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
