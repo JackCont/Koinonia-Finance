@@ -48,6 +48,29 @@ export default function Transactions() {
     });
   }, [transactions, search, filterType, filterCategory, filterMonth]);
 
+  // Calcular saldo do período filtrado
+  const periodBalance = useMemo(() => {
+    const periodTransactions = transactions.filter(t => {
+      const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
+      return matchMonth && !t.estornada;
+    });
+
+    const entradas = periodTransactions
+      .filter(t => t.tipo === 'ENTRADA')
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const saidas = periodTransactions
+      .filter(t => t.tipo === 'SAIDA')
+      .reduce((sum, t) => sum + t.valor, 0);
+
+    return {
+      entradas,
+      saidas,
+      saldo: entradas - saidas,
+      totalTransacoes: periodTransactions.length
+    };
+  }, [transactions, filterMonth]);
+
   const handleSave = () => {
     if (!form.descricao.trim() || form.valor <= 0) {
       alert('Descrição e valor são obrigatórios (valor > 0)');
@@ -173,6 +196,67 @@ export default function Transactions() {
           className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
           <Plus size={16} /> Novo Lançamento
         </button>
+      </div>
+
+      {/* Saldo do Período */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-emerald-700 font-medium mb-1">Entradas do Período</p>
+              <p className="text-xl font-bold text-emerald-800">
+                {periodBalance.entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            </div>
+            <ArrowUpRight size={24} className="text-emerald-500" />
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-red-700 font-medium mb-1">Saídas do Período</p>
+              <p className="text-xl font-bold text-red-800">
+                {periodBalance.saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            </div>
+            <ArrowDownRight size={24} className="text-red-500" />
+          </div>
+        </div>
+        
+        <div className={`bg-gradient-to-br rounded-xl p-4 border ${
+          periodBalance.saldo >= 0 
+            ? 'from-blue-50 to-blue-100 border-blue-200' 
+            : 'from-orange-50 to-orange-100 border-orange-200'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className={`text-xs font-medium mb-1 ${
+                periodBalance.saldo >= 0 ? 'text-blue-700' : 'text-orange-700'
+              }`}>Saldo do Período</p>
+              <p className={`text-xl font-bold ${
+                periodBalance.saldo >= 0 ? 'text-blue-800' : 'text-orange-800'
+              }`}>
+                {periodBalance.saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
+            </div>
+            {periodBalance.saldo >= 0 ? (
+              <ArrowUpRight size={24} className="text-blue-500" />
+            ) : (
+              <ArrowDownRight size={24} className="text-orange-500" />
+            )}
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs text-slate-700 font-medium mb-1">Total de Lançamentos</p>
+              <p className="text-xl font-bold text-slate-800">{periodBalance.totalTransacoes}</p>
+            </div>
+            <Filter size={24} className="text-slate-500" />
+          </div>
+        </div>
       </div>
 
       {/* Summary */}

@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { Download, Upload, FileDown, FileUp, Shield, AlertTriangle, Check, Database, Trash2 } from 'lucide-react';
-import { createBackup, restoreBackup, exportToCSV, getMemberTemplate, getTransactionTemplate, getCommitmentTemplate, parseCSV, getMembers, getTransactions, getCommitments, saveMember, saveTransaction, getConfig } from '../store';
+import { createBackup, restoreBackup, exportToCSV, getMemberTemplate, getTransactionTemplate, getCommitmentTemplate, parseCSV, getMembers, getTransactions, getCommitments, saveMember, saveTransaction, getConfig, normalizeCategoryName } from '../store';
 import { BackupData, Member, Transaction } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import { format } from 'date-fns';
@@ -106,7 +106,7 @@ export default function ImportExport() {
               id: uuidv4(),
               data: dateStr,
               tipo: (row.tipo as any) || 'ENTRADA',
-              categoria: (row.categoria as any) || 'OUTRAS_RECEITAS',
+              categoria: normalizeCategoryName(row.categoria || 'OUTRAS_RECEITAS') as any,
               valor: parseFloat(row.valor) || 0,
               descricao: row.descricao || '',
               congregacao: row.congregacao || '',

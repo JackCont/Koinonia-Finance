@@ -47,40 +47,81 @@ function saveToStorage<T>(key: string, content: T): void {
 
 // Função para normalizar nomes de categorias
 export function normalizeCategoryName(name: string): string {
+  if (!name) return 'OUTRAS_RECEITAS';
+  
+  // Remove acentos, converte para minúsculas e remove espaços extras
   const normalized = name.toLowerCase()
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/\s+/g, ' ') // Normaliza espaços
+    .replace(/[.]/g, '') // Remove pontos
     .trim();
   
+  // Mapeamento direto
   const mapping: Record<string, string> = {
     'dizimo': 'DIZIMO',
+    'dizimos': 'DIZIMO',
     'oferta': 'OFERTA',
+    'ofertas': 'OFERTA',
     'doacao': 'DOACAO',
+    'doacoes': 'DOACAO',
     'missoes': 'MISSOES',
+    'missao': 'MISSOES',
     'agua': 'DESPESA_AGUA',
+    'conta agua': 'DESPESA_AGUA',
     'luz': 'DESPESA_LUZ',
+    'energia': 'DESPESA_LUZ',
+    'conta luz': 'DESPESA_LUZ',
+    'conta energia': 'DESPESA_LUZ',
     'aluguel': 'DESPESA_ALUGUEL',
     'iptu': 'DESPESA_IPTU',
     'jubilados': 'DESPESA_JUBILADOS',
+    'jubilado': 'DESPESA_JUBILADOS',
     'mat ceia': 'DESPESA_CEIA',
-    'mat. ceia': 'DESPESA_CEIA',
     'material ceia': 'DESPESA_CEIA',
+    'ceia': 'DESPESA_CEIA',
     'mat secretaria': 'DESPESA_SECRETARIA',
-    'mat. secretaria': 'DESPESA_SECRETARIA',
     'material secretaria': 'DESPESA_SECRETARIA',
+    'secretaria': 'DESPESA_SECRETARIA',
     'mat limpeza': 'DESPESA_LIMPEZA',
-    'mat. limpeza': 'DESPESA_LIMPEZA',
     'material limpeza': 'DESPESA_LIMPEZA',
+    'limpeza': 'DESPESA_LIMPEZA',
     'viagem': 'DESPESA_VIAGEM',
+    'viagens': 'DESPESA_VIAGEM',
     'despesas diversas': 'DESPESA_DIVERSAS',
     'despesa diversa': 'DESPESA_DIVERSAS',
+    'diversas': 'DESPESA_DIVERSAS',
     'pastor': 'DESPESA_PESSOAL',
+    'pastores': 'DESPESA_PESSOAL',
+    'pessoal': 'DESPESA_PESSOAL',
     'patrimonio': 'PATRIMONIO',
     'outras receitas': 'OUTRAS_RECEITAS',
+    'outra receita': 'OUTRAS_RECEITAS',
     'outras despesas': 'OUTRAS_DESPESAS',
+    'outra despesa': 'OUTRAS_DESPESAS',
   };
   
-  return mapping[normalized] || name.toUpperCase().replace(/\s+/g, '_');
+  // Tenta encontrar no mapeamento
+  if (mapping[normalized]) {
+    return mapping[normalized];
+  }
+  
+  // Se já está no formato correto (ex: DIZIMO, DESPESA_AGUA), retorna como está
+  const upperName = name.toUpperCase().trim();
+  const validCategories = [
+    'DIZIMO', 'OFERTA', 'DOACAO', 'MISSOES', 'OUTRAS_RECEITAS', 'PATRIMONIO',
+    'DESPESA_AGUA', 'DESPESA_LUZ', 'DESPESA_ALUGUEL', 'DESPESA_IPTU',
+    'DESPESA_JUBILADOS', 'DESPESA_CEIA', 'DESPESA_SECRETARIA', 'DESPESA_LIMPEZA',
+    'DESPESA_VIAGEM', 'DESPESA_DIVERSAS', 'DESPESA_PESSOAL', 'DESPESA_MANUTENCAO',
+    'DESPESA_MISSIONARIA', 'REPASSE_DENOMINACIONAL', 'OUTRAS_DESPESAS'
+  ];
+  
+  if (validCategories.includes(upperName)) {
+    return upperName;
+  }
+  
+  // Fallback: converte para formato padrão
+  return upperName.replace(/\s+/g, '_');
 }
 
 const defaultCategories: CategoryConfig[] = [
