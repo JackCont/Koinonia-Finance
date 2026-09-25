@@ -45,6 +45,44 @@ function saveToStorage<T>(key: string, content: T): void {
   localStorage.setItem(key, JSON.stringify(content));
 }
 
+// Função para normalizar nomes de categorias
+export function normalizeCategoryName(name: string): string {
+  const normalized = name.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .trim();
+  
+  const mapping: Record<string, string> = {
+    'dizimo': 'DIZIMO',
+    'oferta': 'OFERTA',
+    'doacao': 'DOACAO',
+    'missoes': 'MISSOES',
+    'agua': 'DESPESA_AGUA',
+    'luz': 'DESPESA_LUZ',
+    'aluguel': 'DESPESA_ALUGUEL',
+    'iptu': 'DESPESA_IPTU',
+    'jubilados': 'DESPESA_JUBILADOS',
+    'mat ceia': 'DESPESA_CEIA',
+    'mat. ceia': 'DESPESA_CEIA',
+    'material ceia': 'DESPESA_CEIA',
+    'mat secretaria': 'DESPESA_SECRETARIA',
+    'mat. secretaria': 'DESPESA_SECRETARIA',
+    'material secretaria': 'DESPESA_SECRETARIA',
+    'mat limpeza': 'DESPESA_LIMPEZA',
+    'mat. limpeza': 'DESPESA_LIMPEZA',
+    'material limpeza': 'DESPESA_LIMPEZA',
+    'viagem': 'DESPESA_VIAGEM',
+    'despesas diversas': 'DESPESA_DIVERSAS',
+    'despesa diversa': 'DESPESA_DIVERSAS',
+    'pastor': 'DESPESA_PESSOAL',
+    'patrimonio': 'PATRIMONIO',
+    'outras receitas': 'OUTRAS_RECEITAS',
+    'outras despesas': 'OUTRAS_DESPESAS',
+  };
+  
+  return mapping[normalized] || name.toUpperCase().replace(/\s+/g, '_');
+}
+
 const defaultCategories: CategoryConfig[] = [
   { id: '1', nome: 'Dízimo', tipo: 'ENTRADA', percentualRepasse: 20, cor: '#10b981' },
   { id: '2', nome: 'Oferta', tipo: 'ENTRADA', cor: '#3b82f6' },
@@ -175,8 +213,15 @@ export function getTransactions(): Transaction[] {
 export function saveTransaction(transaction: Transaction): void {
   const transactions = getTransactions();
   const idx = transactions.findIndex(t => t.id === transaction.id);
-  if (idx >= 0) transactions[idx] = transaction;
-  else transactions.push(transaction);
+  
+  // Normalizar categoria antes de salvar
+  const normalizedTransaction = {
+    ...transaction,
+    categoria: normalizeCategoryName(transaction.categoria) as any,
+  };
+  
+  if (idx >= 0) transactions[idx] = normalizedTransaction;
+  else transactions.push(normalizedTransaction);
   saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
   addAuditLog('LANCAMENTO', `Transação ${transaction.descricao} - R$ ${transaction.valor.toFixed(2)}`);
 }

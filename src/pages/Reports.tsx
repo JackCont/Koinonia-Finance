@@ -177,7 +177,7 @@ export default function Reports() {
               <select value={selectedMember} onChange={e => setSelectedMember(e.target.value)}
                 className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none min-w-[200px]">
                 <option value="">Selecione um membro</option>
-                {members.filter(m => m.status === 'ATIVO').map(m => (
+                {members.filter(m => m.status === 'ATIVO').sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(m => (
                   <option key={m.id} value={m.id}>{m.nome}</option>
                 ))}
               </select>

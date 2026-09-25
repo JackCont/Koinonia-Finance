@@ -18,7 +18,7 @@ export default function Members() {
         m.cpf.includes(search) || m.telefone.includes(search);
       const matchStatus = filterStatus === 'all' || m.status === filterStatus;
       return matchSearch && matchStatus;
-    });
+    }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
   }, [members, search, filterStatus]);
 
   const emptyMember: Member = {

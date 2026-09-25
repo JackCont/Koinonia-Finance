@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter } from 'lucide-react';
-import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations } from '../store';
+import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter, Edit2 } from 'lucide-react';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser } from '../store';
 import { Transaction, TransactionType, TransactionCategory } from '../types';
 import { format, parseISO } from 'date-fns';
 
@@ -9,11 +9,14 @@ export default function Transactions() {
   const [transactions, setTransactions] = useState(getTransactions());
   const [search, setSearch] = useState('');
   const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState('');
   const config = getConfig();
   const members = getMembers();
+  const currentUser = getCurrentUser();
+  const canEdit = currentUser?.role === 'MASTER' || currentUser?.role === 'ADMIN';
 
   const emptyTransaction: Omit<Transaction, 'id' | 'createdAt'> = {
     data: format(new Date(), 'yyyy-MM-dd'),
@@ -35,7 +38,13 @@ export default function Transactions() {
       const matchCategory = filterCategory === 'all' || t.categoria === filterCategory;
       const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
       return matchSearch && matchType && matchCategory && matchMonth;
-    }).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    }).sort((a, b) => {
+      // Primeiro ordena por data (mais recente primeiro)
+      const dateDiff = new Date(b.data).getTime() - new Date(a.data).getTime();
+      if (dateDiff !== 0) return dateDiff;
+      // Se mesma data, ordena por descrição alfabeticamente
+      return a.descricao.localeCompare(b.descricao, 'pt-BR');
+    });
   }, [transactions, search, filterType, filterCategory, filterMonth]);
 
   const handleSave = () => {
@@ -43,15 +52,50 @@ export default function Transactions() {
       alert('Descrição e valor são obrigatórios (valor > 0)');
       return;
     }
-    const transaction: Transaction = {
-      ...form,
-      id: uuidv4(),
-      createdAt: new Date().toISOString(),
-    };
-    saveTransaction(transaction);
+    
+    if (editingId) {
+      // Editando transação existente
+      const existing = transactions.find(t => t.id === editingId);
+      if (existing) {
+        const updated: Transaction = {
+          ...existing,
+          ...form,
+        };
+        saveTransaction(updated);
+      }
+    } else {
+      // Criando nova transação
+      const transaction: Transaction = {
+        ...form,
+        id: uuidv4(),
+        createdAt: new Date().toISOString(),
+      };
+      saveTransaction(transaction);
+    }
+    
     setTransactions(getTransactions());
     setShowForm(false);
+    setEditingId(null);
     setForm(emptyTransaction);
+  };
+
+  const handleEdit = (t: Transaction) => {
+    if (!canEdit) {
+      alert('Apenas usuários MASTER ou ADMIN podem editar lançamentos');
+      return;
+    }
+    setForm({
+      data: t.data,
+      tipo: t.tipo,
+      categoria: t.categoria,
+      valor: t.valor,
+      descricao: t.descricao,
+      congregacao: t.congregacao,
+      memberId: t.memberId || '',
+      estornada: t.estornada,
+    });
+    setEditingId(t.id);
+    setShowForm(true);
   };
 
   const handleDelete = (id: string) => {
@@ -72,7 +116,13 @@ export default function Transactions() {
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   
   const getCategoryName = (cat: string) => {
-    const c = config.categories.find(c => c.id === cat) || config.categories.find(c => c.nome === cat);
+    // Tenta encontrar por ID, nome ou constante normalizada
+    const c = config.categories.find(c => 
+      c.id === cat || 
+      c.nome === cat || 
+      c.nome.toUpperCase().replace(/\s+/g, '_') === cat ||
+      c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    );
     return c?.nome || cat;
   };
 
@@ -82,7 +132,12 @@ export default function Transactions() {
   };
 
   const getCategoryColor = (cat: string) => {
-    const c = config.categories.find(c => c.id === cat || c.nome === cat);
+    const c = config.categories.find(c => 
+      c.id === cat || 
+      c.nome === cat || 
+      c.nome.toUpperCase().replace(/\s+/g, '_') === cat ||
+      c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') === cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    );
     return c?.cor || '#64748b';
   };
 
@@ -178,6 +233,12 @@ export default function Transactions() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-center gap-1">
+                      {canEdit && !t.estornada && (
+                        <button onClick={() => handleEdit(t)} title="Editar"
+                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <Edit2 size={14} />
+                        </button>
+                      )}
                       {!t.estornada && (
                         <button onClick={() => handleEstorno(t.id)} title="Estornar"
                           className="p-1.5 text-amber-600 hover:bg-amber-50 rounded-lg transition-colors">
@@ -208,8 +269,8 @@ export default function Transactions() {
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
           <div className="bg-white rounded-2xl w-full max-w-lg p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-slate-800">Novo Lançamento</h3>
-              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+              <h3 className="text-lg font-bold text-slate-800">{editingId ? 'Editar Lançamento' : 'Novo Lançamento'}</h3>
+              <button onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyTransaction); }} className="p-2 hover:bg-slate-100 rounded-lg">
                 <X size={18} />
               </button>
             </div>
@@ -249,7 +310,7 @@ export default function Transactions() {
                 <select value={form.congregacao} onChange={e => setForm({...form, congregacao: e.target.value})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
                   <option value="">-- Selecione --</option>
-                  {getCongregations().map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                  {getCongregations().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-4">
@@ -263,7 +324,7 @@ export default function Transactions() {
                   <select value={form.memberId} onChange={e => setForm({...form, memberId: e.target.value})}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
                     <option value="">-- Nenhum --</option>
-                    {members.filter(m => m.status === 'ATIVO').map(m => (
+                    {members.filter(m => m.status === 'ATIVO').sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(m => (
                       <option key={m.id} value={m.id}>{m.nome}</option>
                     ))}
                   </select>
