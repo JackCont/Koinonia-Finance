@@ -36,7 +36,7 @@ export default function Remittance() {
       }
     });
 
-    return congregations.map(cong => {
+    const allData = congregations.map(cong => {
       const congTx = selectedCong === 'all' 
         ? monthTx.filter(t => t.congregacao === cong.nome || !t.congregacao)
         : monthTx.filter(t => t.congregacao === cong.nome);
@@ -72,6 +72,11 @@ export default function Remittance() {
         pastor, saldo,
       };
     });
+
+    // Filtrar apenas congregações com movimentação financeira
+    return allData.filter(row => 
+      row.receitaBruta > 0 || row.totalDespesas > 0 || row.pastor > 0
+    );
   }, [transactions, selectedMonth, selectedCong, congregations, remittancePercentual, monthStart, monthEnd]);
 
   const totals = useMemo(() => {
@@ -96,6 +101,19 @@ export default function Remittance() {
       saldo: acc.saldo + row.saldo,
     }), { dizimos: 0, ofertas: 0, receitaBruta: 0, remessa: 0, missoes: 0, agua: 0, luz: 0, aluguel: 0, iptu: 0, jubilados: 0, matCeia: 0, matSecretaria: 0, matLimpeza: 0, viagem: 0, despDiversas: 0, totalDespesas: 0, pastor: 0, saldo: 0 });
   }, [monthlyData]);
+
+  // Filtrar apenas congregações com despesas de pastor
+  const pastorData = useMemo(() => {
+    return monthlyData
+      .filter(row => row.pastor > 0)
+      .map(row => {
+        const cong = congregations.find(c => c.nome === row.congregacao);
+        return {
+          ...row,
+          pastorNome: cong?.pastor || ''
+        };
+      });
+  }, [monthlyData, congregations]);
 
   const handlePrint = () => window.print();
 
@@ -252,13 +270,6 @@ export default function Remittance() {
                     <td className="py-1 px-1 text-right">{formatCurrency(row.missoes)}</td>
                   </tr>
                 ))}
-                {/* Empty rows */}
-                {Array.from({ length: Math.max(0, 8 - monthlyData.length) }, (_, i) => (
-                  <tr key={`empty-${i}`} className="border-b border-slate-50">
-                    <td className="py-1 px-1">{monthlyData.length + i + 1}</td>
-                    <td colSpan={6}></td>
-                  </tr>
-                ))}
                 <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
                   <td className="py-1.5 px-1" colSpan={2}>TOTAL:</td>
                   <td className="py-1.5 px-1 text-right">{formatCurrency(totals.dizimos)}</td>
@@ -310,12 +321,6 @@ export default function Remittance() {
                     <td className="py-1 px-1 text-right font-medium">{formatCurrency(row.totalDespesas)}</td>
                   </tr>
                 ))}
-                {Array.from({ length: Math.max(0, 8 - monthlyData.length) }, (_, i) => (
-                  <tr key={`empty-d-${i}`} className="border-b border-slate-50">
-                    <td className="py-1 px-1">{monthlyData.length + i + 1}</td>
-                    <td colSpan={12}></td>
-                  </tr>
-                ))}
                 <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
                   <td className="py-1.5 px-1" colSpan={2}>TOTAL:</td>
                   <td className="py-1.5 px-1 text-right">{formatCurrency(totals.agua)}</td>
@@ -351,22 +356,16 @@ export default function Remittance() {
                 </tr>
               </thead>
               <tbody>
-                {monthlyData.map((row, i) => (
+                {pastorData.map((row, i) => (
                   <tr key={i} className="border-b border-slate-100">
                     <td className="py-1 px-1">{i + 1}</td>
                     <td className="py-1 px-1">{row.congregacao}</td>
-                    <td className="py-1 px-1">{congregations[i]?.pastor || ''}</td>
+                    <td className="py-1 px-1">{row.pastorNome}</td>
                     <td className="py-1 px-1 text-right">{formatCurrency(row.pastor)}</td>
                     <td></td>
                     <td className="py-1 px-1"></td>
                     <td></td>
                     <td className="py-1 px-1"></td>
-                  </tr>
-                ))}
-                {Array.from({ length: Math.max(0, 3 - monthlyData.length) }, (_, i) => (
-                  <tr key={`empty-p-${i}`} className="border-b border-slate-50">
-                    <td className="py-1 px-1">{monthlyData.length + i + 1}</td>
-                    <td colSpan={7}></td>
                   </tr>
                 ))}
                 <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
