@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Save, Plus, X, Trash2, Calendar, Building2, Percent } from 'lucide-react';
+import { Save, Plus, X, Trash2, Calendar, Building2, Percent, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { getConfig, saveConfig, saveRemittanceRule, deleteRemittanceRule, saveCongregation, deleteCongregation } from '../store';
 import { AppConfig, CategoryConfig, RemittanceRule, Congregation } from '../types';
 
@@ -291,23 +291,52 @@ export default function SettingsPage() {
             <Plus size={14} /> Adicionar
           </button>
         </div>
-        <div className="space-y-2 max-h-64 overflow-y-auto">
-          {config.categories.map(cat => (
-            <div key={cat.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded-lg">
-              <input type="color" value={cat.cor} onChange={e => updateCategory(cat.id, { cor: e.target.value })}
-                className="w-7 h-7 rounded border-0 cursor-pointer" />
-              <input type="text" value={cat.nome} onChange={e => updateCategory(cat.id, { nome: e.target.value })}
-                className="flex-1 px-2 py-1.5 rounded border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
-              <select value={cat.tipo} onChange={e => updateCategory(cat.id, { tipo: e.target.value as 'ENTRADA' | 'SAIDA' })}
-                className="px-2 py-1.5 rounded border border-slate-200 text-xs focus:border-indigo-400 outline-none">
-                <option value="ENTRADA">Entrada</option>
-                <option value="SAIDA">Saída</option>
-              </select>
-              <button onClick={() => deleteCategory(cat.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded">
-                <Trash2 size={12} />
-              </button>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Categorias de Entrada */}
+          <div>
+            <h4 className="text-sm font-semibold text-emerald-700 mb-3 flex items-center gap-2">
+              <ArrowUpRight size={16} /> Categorias de Entrada
+            </h4>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {config.categories
+                .filter(cat => cat.tipo === 'ENTRADA')
+                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                .map(cat => (
+                  <div key={cat.id} className="flex items-center gap-3 p-2 bg-emerald-50 rounded-lg">
+                    <input type="color" value={cat.cor} onChange={e => updateCategory(cat.id, { cor: e.target.value })}
+                      className="w-7 h-7 rounded border-0 cursor-pointer" />
+                    <input type="text" value={cat.nome} onChange={e => updateCategory(cat.id, { nome: e.target.value })}
+                      className="flex-1 px-2 py-1.5 rounded border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                    <button onClick={() => deleteCategory(cat.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
             </div>
-          ))}
+          </div>
+
+          {/* Categorias de Saída */}
+          <div>
+            <h4 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+              <ArrowDownRight size={16} /> Categorias de Saída
+            </h4>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {config.categories
+                .filter(cat => cat.tipo === 'SAIDA')
+                .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                .map(cat => (
+                  <div key={cat.id} className="flex items-center gap-3 p-2 bg-red-50 rounded-lg">
+                    <input type="color" value={cat.cor} onChange={e => updateCategory(cat.id, { cor: e.target.value })}
+                      className="w-7 h-7 rounded border-0 cursor-pointer" />
+                    <input type="text" value={cat.nome} onChange={e => updateCategory(cat.id, { nome: e.target.value })}
+                      className="flex-1 px-2 py-1.5 rounded border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                    <button onClick={() => deleteCategory(cat.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -320,14 +349,16 @@ export default function SettingsPage() {
           </button>
         </div>
         <div className="flex flex-wrap gap-2">
-          {config.ministerios.map(min => (
-            <span key={min} className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm">
-              {min}
-              <button onClick={() => setConfig({...config, ministerios: config.ministerios.filter(m => m !== min)})} className="ml-1 hover:text-red-600">
-                <X size={12} />
-              </button>
-            </span>
-          ))}
+          {config.ministerios
+            .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+            .map(min => (
+              <span key={min} className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-sm">
+                {min}
+                <button onClick={() => setConfig({...config, ministerios: config.ministerios.filter(m => m !== min)})} className="ml-1 hover:text-red-600">
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
         </div>
       </div>
 

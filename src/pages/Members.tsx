@@ -10,18 +10,29 @@ export default function Members() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterMinisterio, setFilterMinisterio] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const config = getConfig();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Obter ministérios únicos e ordenar alfabeticamente
+  const ministerios = useMemo(() => {
+    const ministeriosSet = new Set<string>();
+    members.forEach(m => {
+      m.ministerios.forEach(min => ministeriosSet.add(min));
+    });
+    return Array.from(ministeriosSet).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [members]);
 
   const filtered = useMemo(() => {
     return members.filter(m => {
       const matchSearch = m.nome.toLowerCase().includes(search.toLowerCase()) ||
         m.cpf.includes(search) || m.telefone.includes(search);
       const matchStatus = filterStatus === 'all' || m.status === filterStatus;
-      return matchSearch && matchStatus;
+      const matchMinisterio = filterMinisterio === 'all' || m.ministerios.includes(filterMinisterio);
+      return matchSearch && matchStatus && matchMinisterio;
     }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-  }, [members, search, filterStatus]);
+  }, [members, search, filterStatus, filterMinisterio]);
 
   const emptyMember: Member = {
     id: '', nome: '', cpf: '', email: '', telefone: '',
@@ -105,6 +116,16 @@ export default function Members() {
             <option value="ATIVO">Ativos</option>
             <option value="INATIVO">Inativos</option>
             <option value="TRANSFERIDO">Transferidos</option>
+          </select>
+          <select
+            value={filterMinisterio}
+            onChange={e => setFilterMinisterio(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none"
+          >
+            <option value="all">Todos os Ministérios</option>
+            {ministerios.map(min => (
+              <option key={min} value={min}>{min}</option>
+            ))}
           </select>
         </div>
         <div className="flex items-center gap-2">

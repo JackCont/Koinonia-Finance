@@ -108,7 +108,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
+    <div 
+      className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex"
+      style={{
+        '--theme-primary': theme.primaryColor,
+        '--theme-secondary': theme.secondaryColor,
+        '--theme-accent': theme.accentColor,
+        '--theme-button': theme.buttonPrimary,
+        '--theme-button-hover': theme.buttonPrimaryHover,
+      } as React.CSSProperties}
+    >
       {/* Sidebar */}
       <aside 
         className={`

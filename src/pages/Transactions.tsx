@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter, Edit2 } from 'lucide-react';
-import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser } from '../store';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName } from '../store';
 import { Transaction, TransactionType, TransactionCategory } from '../types';
 import { format, parseISO } from 'date-fns';
 
@@ -32,44 +32,37 @@ export default function Transactions() {
 
   const [form, setForm] = useState(emptyTransaction);
 
+  // Resetar filtro de categoria quando mudar o tipo
+  const handleTypeChange = (newType: string) => {
+    setFilterType(newType);
+    setFilterCategory('all'); // Resetar categoria ao mudar tipo
+  };
+
+  // Filtrar categorias baseado no tipo selecionado
+  const filteredCategories = useMemo(() => {
+    if (filterType === 'all') {
+      return config.categories;
+    }
+    return config.categories.filter(c => c.tipo === filterType);
+  }, [config.categories, filterType]);
+
   const filtered = useMemo(() => {
     return transactions.filter(t => {
       const matchSearch = t.descricao.toLowerCase().includes(search.toLowerCase());
       const matchType = filterType === 'all' || t.tipo === filterType;
-      const matchCategory = filterCategory === 'all' || t.categoria === filterCategory;
+      
+      // Comparar categoria normalizada
+      const transactionCategoryNormalized = normalizeCategoryName(t.categoria);
+      const matchCategory = filterCategory === 'all' || transactionCategoryNormalized === filterCategory;
+      
       const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
       return matchSearch && matchType && matchCategory && matchMonth;
     }).sort((a, b) => {
-      // Primeiro ordena por data (mais recente primeiro)
       const dateDiff = new Date(b.data).getTime() - new Date(a.data).getTime();
       if (dateDiff !== 0) return dateDiff;
-      // Se mesma data, ordena por descrição alfabeticamente
       return a.descricao.localeCompare(b.descricao, 'pt-BR');
     });
   }, [transactions, search, filterType, filterCategory, filterMonth]);
-
-  // Calcular saldo do período filtrado
-  const periodBalance = useMemo(() => {
-    const periodTransactions = transactions.filter(t => {
-      const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
-      return matchMonth && !t.estornada;
-    });
-
-    const entradas = periodTransactions
-      .filter(t => t.tipo === 'ENTRADA')
-      .reduce((sum, t) => sum + t.valor, 0);
-    
-    const saidas = periodTransactions
-      .filter(t => t.tipo === 'SAIDA')
-      .reduce((sum, t) => sum + t.valor, 0);
-
-    return {
-      entradas,
-      saidas,
-      saldo: entradas - saidas,
-      totalTransacoes: periodTransactions.length
-    };
-  }, [transactions, filterMonth]);
 
   const handleSave = () => {
     if (!form.descricao.trim() || form.valor <= 0) {
@@ -77,21 +70,24 @@ export default function Transactions() {
       return;
     }
     
+    // Normalizar categoria antes de salvar
+    const normalizedCategoria = normalizeCategoryName(form.categoria);
+    
     if (editingId) {
-      // Editando transação existente
       const existing = transactions.find(t => t.id === editingId);
       if (existing) {
         const updated: Transaction = {
           ...existing,
           ...form,
+          categoria: normalizedCategoria as TransactionCategory,
         };
         saveTransaction(updated);
       }
     } else {
-      // Criando nova transação
       const transaction: Transaction = {
         ...form,
         id: uuidv4(),
+        categoria: normalizedCategoria as TransactionCategory,
         createdAt: new Date().toISOString(),
       };
       saveTransaction(transaction);
@@ -123,13 +119,6 @@ export default function Transactions() {
     setShowForm(true);
   };
 
-  const handleDelete = (id: string) => {
-    if (confirm('Remover este lançamento?')) {
-      deleteTransaction(id);
-      setTransactions(getTransactions());
-    }
-  };
-
   const handleEstorno = (id: string) => {
     const motivo = prompt('Motivo do estorno:');
     if (motivo) {
@@ -138,52 +127,22 @@ export default function Transactions() {
     }
   };
 
+  const handleDelete = (id: string) => {
+    if (confirm('Remover este lançamento?')) {
+      deleteTransaction(id);
+      setTransactions(getTransactions());
+    }
+  };
+
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  
+
   const getCategoryName = (cat: string) => {
-    // Busca direta por ID ou nome
-    const c = config.categories.find(c => c.id === cat || c.nome === cat);
-    if (c) return c.nome;
-    
-    // Busca por nome normalizado (sem acentos, maiúsculas, sem espaços)
-    const normalizedCat = cat.toUpperCase().replace(/\s+/g, '_');
-    const c2 = config.categories.find(c => {
-      const normalizedName = c.nome.toUpperCase().replace(/\s+/g, '_');
-      return normalizedName === normalizedCat;
-    });
-    if (c2) return c2.nome;
-    
-    // Busca por nome sem acentos
-    const catSemAcento = cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const c3 = config.categories.find(c => {
-      const nomeSemAcento = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      return nomeSemAcento === catSemAcento;
-    });
-    if (c3) return c3.nome;
-    
-    // Mapeamento direto de categorias normalizadas
-    const mapping: Record<string, string> = {
-      'DIZIMO': 'Dízimo',
-      'OFERTA': 'Oferta',
-      'DOACAO': 'Doação',
-      'MISSOES': 'Missões',
-      'OUTRAS_RECEITAS': 'Outras Receitas',
-      'PATRIMONIO': 'Patrimônio',
-      'DESPESA_AGUA': 'Água',
-      'DESPESA_LUZ': 'Luz',
-      'DESPESA_ALUGUEL': 'Aluguel',
-      'DESPESA_IPTU': 'IPTU',
-      'DESPESA_JUBILADOS': 'Jubilados',
-      'DESPESA_CEIA': 'Mat. Ceia',
-      'DESPESA_SECRETARIA': 'Mat. Secretaria',
-      'DESPESA_LIMPEZA': 'Mat. Limpeza',
-      'DESPESA_VIAGEM': 'Viagem',
-      'DESPESA_DIVERSAS': 'Despesas Diversas',
-      'DESPESA_PESSOAL': 'Pastor',
-      'OUTRAS_DESPESAS': 'Outras Despesas',
-    };
-    
-    return mapping[normalizedCat] || cat;
+    const normalized = normalizeCategoryName(cat);
+    const c = config.categories.find(c => 
+      c.id === normalized || 
+      normalizeCategoryName(c.nome) === normalized
+    );
+    return c?.nome || cat;
   };
 
   const getMemberName = (id?: string) => {
@@ -192,28 +151,35 @@ export default function Transactions() {
   };
 
   const getCategoryColor = (cat: string) => {
-    // Busca direta por ID ou nome
-    const c = config.categories.find(c => c.id === cat || c.nome === cat);
-    if (c) return c.cor;
-    
-    // Busca por nome normalizado
-    const normalizedCat = cat.toUpperCase().replace(/\s+/g, '_');
-    const c2 = config.categories.find(c => {
-      const normalizedName = c.nome.toUpperCase().replace(/\s+/g, '_');
-      return normalizedName === normalizedCat;
-    });
-    if (c2) return c2.cor;
-    
-    // Busca por nome sem acentos
-    const catSemAcento = cat.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const c3 = config.categories.find(c => {
-      const nomeSemAcento = c.nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-      return nomeSemAcento === catSemAcento;
-    });
-    if (c3) return c3.cor;
-    
-    return '#64748b';
+    const normalized = normalizeCategoryName(cat);
+    const c = config.categories.find(c => 
+      c.id === normalized || 
+      normalizeCategoryName(c.nome) === normalized
+    );
+    return c?.cor || '#64748b';
   };
+
+  const periodBalance = useMemo(() => {
+    const periodTransactions = transactions.filter(t => {
+      const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
+      return matchMonth && !t.estornada;
+    });
+
+    const entradas = periodTransactions
+      .filter(t => t.tipo === 'ENTRADA')
+      .reduce((sum, t) => sum + t.valor, 0);
+    
+    const saidas = periodTransactions
+      .filter(t => t.tipo === 'SAIDA')
+      .reduce((sum, t) => sum + t.valor, 0);
+
+    return {
+      entradas,
+      saidas,
+      saldo: entradas - saidas,
+      totalTransacoes: periodTransactions.length
+    };
+  }, [transactions, filterMonth]);
 
   return (
     <div className="space-y-6">
@@ -225,7 +191,7 @@ export default function Transactions() {
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
         </div>
         <div className="flex flex-wrap gap-2">
-          <select value={filterType} onChange={e => setFilterType(e.target.value)}
+          <select value={filterType} onChange={e => handleTypeChange(e.target.value)}
             className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
             <option value="all">Todos os tipos</option>
             <option value="ENTRADA">Entradas</option>
@@ -234,18 +200,19 @@ export default function Transactions() {
           <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
             className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
             <option value="all">Todas categorias</option>
-            {config.categories.map(c => {
-              // Converter nome da categoria para formato normalizado
-              const normalizedCategory = c.nome.toUpperCase().replace(/\s+/g, '_');
-              return (
-                <option key={c.id} value={normalizedCategory}>{c.nome}</option>
-              );
-            })}
+            {filteredCategories
+              .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+              .map(c => {
+                const normalizedCategory = normalizeCategoryName(c.nome);
+                return (
+                  <option key={c.id} value={normalizedCategory}>{c.nome}</option>
+                );
+              })}
           </select>
           <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
             className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
         </div>
-        <button onClick={() => { setForm(emptyTransaction); setShowForm(true); }}
+        <button onClick={() => { setForm(emptyTransaction); setEditingId(null); setShowForm(true); }}
           className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm">
           <Plus size={16} /> Novo Lançamento
         </button>
@@ -312,27 +279,7 @@ export default function Transactions() {
         </div>
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-          <p className="text-xs text-emerald-600 font-medium">Total Entradas</p>
-          <p className="text-lg font-bold text-emerald-700">
-            {formatCurrency(filtered.filter(t => t.tipo === 'ENTRADA' && !t.estornada).reduce((s, t) => s + t.valor, 0))}
-          </p>
-        </div>
-        <div className="bg-red-50 rounded-xl p-4 border border-red-100">
-          <p className="text-xs text-red-600 font-medium">Total Saídas</p>
-          <p className="text-lg font-bold text-red-700">
-            {formatCurrency(filtered.filter(t => t.tipo === 'SAIDA' && !t.estornada).reduce((s, t) => s + t.valor, 0))}
-          </p>
-        </div>
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-          <p className="text-xs text-blue-600 font-medium">Lançamentos</p>
-          <p className="text-lg font-bold text-blue-700">{filtered.length}</p>
-        </div>
-      </div>
-
-      {/* Transactions list */}
+      {/* Transactions Table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -439,9 +386,12 @@ export default function Transactions() {
                 <label className="text-sm font-medium text-slate-700 mb-1 block">Categoria</label>
                 <select value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value as TransactionCategory})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
-                  {config.categories.filter(c => c.tipo === form.tipo).map(c => (
-                    <option key={c.id} value={c.nome}>{c.nome}</option>
-                  ))}
+                  {config.categories
+                    .filter(c => c.tipo === form.tipo)
+                    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+                    .map(c => (
+                      <option key={c.id} value={c.nome}>{c.nome}</option>
+                    ))}
                 </select>
               </div>
               <div>

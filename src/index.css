@@ -1,5 +1,44 @@
 @import "tailwindcss";
 
+/* Theme variables */
+:root {
+  --theme-primary: #6366f1;
+  --theme-secondary: #8b5cf6;
+  --theme-accent: #f59e0b;
+  --theme-button: #6366f1;
+  --theme-button-hover: #4f46e5;
+}
+
+/* Apply theme to buttons */
+button.bg-indigo-600 {
+  background-color: var(--theme-button) !important;
+}
+
+button.bg-indigo-600:hover {
+  background-color: var(--theme-button-hover) !important;
+}
+
+/* Apply theme to links and accents */
+.text-indigo-600 {
+  color: var(--theme-primary) !important;
+}
+
+.text-indigo-700 {
+  color: var(--theme-primary) !important;
+}
+
+.bg-indigo-50 {
+  background-color: color-mix(in srgb, var(--theme-primary) 10%, white) !important;
+}
+
+.bg-indigo-100 {
+  background-color: color-mix(in srgb, var(--theme-primary) 20%, white) !important;
+}
+
+.border-indigo-400:focus {
+  border-color: var(--theme-primary) !important;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
