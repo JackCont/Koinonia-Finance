@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ArrowLeftRight, TrendingUp, FileText, 
   Settings, Download, Upload, Menu, X, Church, ClipboardList,
-  Shield, LogOut, FileSpreadsheet
+  Shield, LogOut, FileSpreadsheet, Palette
 } from 'lucide-react';
-import { getCurrentUser, logout } from './store';
+import { getCurrentUser, logout, getTheme } from './store';
 import { User } from './types';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -17,8 +17,9 @@ import ImportExport from './pages/ImportExport';
 import Commitments from './pages/Commitments';
 import AdminUsers from './pages/AdminUsers';
 import Remittance from './pages/Remittance';
+import Customization from './pages/Customization';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance';
+type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization';
 
 interface NavItem {
   id: Page;
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { id: 'importexport', label: 'Importar/Exportar', icon: <Download size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'admin', label: 'Administração', icon: <Shield size={20} />, roles: ['MASTER', 'ADMIN'] },
   { id: 'settings', label: 'Configurações', icon: <Settings size={20} />, roles: ['MASTER', 'ADMIN'] },
+  { id: 'customization', label: 'Personalizar', icon: <Palette size={20} />, roles: ['MASTER', 'ADMIN'] },
 ];
 
 export default function App() {
@@ -89,9 +91,13 @@ export default function App() {
       case 'settings': return <SettingsPage />;
       case 'importexport': return <ImportExport />;
       case 'admin': return <AdminUsers />;
+      case 'customization': return <Customization />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };
+
+  // Aplicar tema
+  const theme = getTheme();
 
   const roleLabels: Record<string, string> = {
     MASTER: 'Master',
@@ -104,12 +110,17 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
       {/* Sidebar */}
-      <aside className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-indigo-900 via-indigo-800 to-purple-900 
+      <aside 
+        className={`
+        fixed inset-y-0 left-0 z-50 w-64
         transform transition-transform duration-300 ease-in-out shadow-2xl
         lg:translate-x-0 lg:static lg:inset-auto
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      `}
+        style={{
+          background: `linear-gradient(to bottom, ${theme.sidebarGradientFrom}, ${theme.sidebarGradientVia}, ${theme.sidebarGradientTo})`
+        }}
+      >
         <div className="p-6 border-b border-indigo-700/50">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm">

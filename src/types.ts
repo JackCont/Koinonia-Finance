@@ -137,3 +137,15 @@ export interface BackupData {
   config: AppConfig;
   users: User[];
 }
+
+export interface AppTheme {
+  primaryColor: string;
+  secondaryColor: string;
+  accentColor: string;
+  sidebarGradientFrom: string;
+  sidebarGradientVia: string;
+  sidebarGradientTo: string;
+  headerBg: string;
+  buttonPrimary: string;
+  buttonPrimaryHover: string;
+}

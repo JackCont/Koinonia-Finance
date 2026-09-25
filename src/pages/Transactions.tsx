@@ -234,9 +234,13 @@ export default function Transactions() {
           <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
             className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
             <option value="all">Todas categorias</option>
-            {config.categories.map(c => (
-              <option key={c.id} value={c.nome}>{c.nome}</option>
-            ))}
+            {config.categories.map(c => {
+              // Converter nome da categoria para formato normalizado
+              const normalizedCategory = c.nome.toUpperCase().replace(/\s+/g, '_');
+              return (
+                <option key={c.id} value={normalizedCategory}>{c.nome}</option>
+              );
+            })}
           </select>
           <input type="month" value={filterMonth} onChange={e => setFilterMonth(e.target.value)}
             className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />

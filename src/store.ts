@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   CONFIG: 'iead_config',
   USERS: 'iead_users',
   CURRENT_USER: 'iead_current_user',
+  THEME: 'iead_theme',
 };
 
 function generateIntegrityKey(input: string): string {
@@ -493,3 +494,87 @@ export function getTransactionTemplate(): string {
 export function getCommitmentTemplate(): string {
   return 'descricao;valorTotal;valorParcela;dataVencimento;frequencia;status;categoria;congregacao;observacoes\nAluguel;12000;1000;05/01/2024;MENSAL;PENDENTE;DESPESA_ALUGUEL;JACUÍ-MG;Aluguel do templo';
 }
+
+// ============ THEME ============
+const defaultTheme: AppTheme = {
+  primaryColor: '#6366f1',
+  secondaryColor: '#8b5cf6',
+  accentColor: '#f59e0b',
+  sidebarGradientFrom: '#312e81',
+  sidebarGradientVia: '#3730a3',
+  sidebarGradientTo: '#581c87',
+  headerBg: 'rgba(255, 255, 255, 0.8)',
+  buttonPrimary: '#6366f1',
+  buttonPrimaryHover: '#4f46e5',
+};
+
+export function getTheme(): AppTheme {
+  return getFromStorage<AppTheme>(STORAGE_KEYS.THEME, defaultTheme);
+}
+
+export function saveTheme(theme: AppTheme): void {
+  saveToStorage(STORAGE_KEYS.THEME, theme);
+}
+
+export function resetTheme(): void {
+  saveToStorage(STORAGE_KEYS.THEME, defaultTheme);
+}
+
+export const themePresets: Record<string, AppTheme> = {
+  default: defaultTheme,
+  blue: {
+    primaryColor: '#2563eb',
+    secondaryColor: '#3b82f6',
+    accentColor: '#06b6d4',
+    sidebarGradientFrom: '#1e3a8a',
+    sidebarGradientVia: '#1e40af',
+    sidebarGradientTo: '#0c4a6e',
+    headerBg: 'rgba(255, 255, 255, 0.8)',
+    buttonPrimary: '#2563eb',
+    buttonPrimaryHover: '#1d4ed8',
+  },
+  green: {
+    primaryColor: '#059669',
+    secondaryColor: '#10b981',
+    accentColor: '#f59e0b',
+    sidebarGradientFrom: '#064e3b',
+    sidebarGradientVia: '#065f46',
+    sidebarGradientTo: '#065f46',
+    headerBg: 'rgba(255, 255, 255, 0.8)',
+    buttonPrimary: '#059669',
+    buttonPrimaryHover: '#047857',
+  },
+  red: {
+    primaryColor: '#dc2626',
+    secondaryColor: '#ef4444',
+    accentColor: '#f59e0b',
+    sidebarGradientFrom: '#7f1d1d',
+    sidebarGradientVia: '#991b1b',
+    sidebarGradientTo: '#7f1d1d',
+    headerBg: 'rgba(255, 255, 255, 0.8)',
+    buttonPrimary: '#dc2626',
+    buttonPrimaryHover: '#b91c1c',
+  },
+  purple: {
+    primaryColor: '#7c3aed',
+    secondaryColor: '#8b5cf6',
+    accentColor: '#ec4899',
+    sidebarGradientFrom: '#4c1d95',
+    sidebarGradientVia: '#5b21b6',
+    sidebarGradientTo: '#701a75',
+    headerBg: 'rgba(255, 255, 255, 0.8)',
+    buttonPrimary: '#7c3aed',
+    buttonPrimaryHover: '#6d28d9',
+  },
+  dark: {
+    primaryColor: '#6366f1',
+    secondaryColor: '#8b5cf6',
+    accentColor: '#f59e0b',
+    sidebarGradientFrom: '#0f172a',
+    sidebarGradientVia: '#1e293b',
+    sidebarGradientTo: '#0f172a',
+    headerBg: 'rgba(15, 23, 42, 0.9)',
+    buttonPrimary: '#6366f1',
+    buttonPrimaryHover: '#4f46e5',
+  },
+};
