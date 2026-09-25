@@ -27,6 +27,7 @@ export default function Transactions() {
     congregacao: '',
     memberId: '',
     estornada: false,
+    competencia: format(new Date(), 'yyyy-MM'),
   };
 
   const [form, setForm] = useState(emptyTransaction);
@@ -93,6 +94,7 @@ export default function Transactions() {
       congregacao: t.congregacao,
       memberId: t.memberId || '',
       estornada: t.estornada,
+      competencia: t.competencia || t.data.substring(0, 7),
     });
     setEditingId(t.id);
     setShowForm(true);
@@ -276,7 +278,7 @@ export default function Transactions() {
             </div>
 
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-slate-700 mb-1 block">Tipo</label>
                   <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value as TransactionType})}
@@ -288,6 +290,11 @@ export default function Transactions() {
                 <div>
                   <label className="text-sm font-medium text-slate-700 mb-1 block">Data</label>
                   <input type="date" value={form.data} onChange={e => setForm({...form, data: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Competência</label>
+                  <input type="month" value={form.competencia} onChange={e => setForm({...form, competencia: e.target.value})}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
                 </div>
               </div>

@@ -9,6 +9,7 @@ export default function CashFlow() {
   const config = getConfig();
   const [year, setYear] = useState(new Date().getFullYear().toString());
   const [selectedMonth, setSelectedMonth] = useState((new Date().getMonth() + 1).toString().padStart(2, '0'));
+  const [viewMode, setViewMode] = useState<'caixa' | 'competencia'>('caixa');
 
   const years = useMemo(() => {
     const dates = transactions.map(t => parseISO(t.data).getFullYear());
@@ -23,8 +24,12 @@ export default function CashFlow() {
     for (let m = 1; m <= 12; m++) {
       const monthStr = `${year}-${m.toString().padStart(2, '0')}`;
       const monthTx = transactions.filter(t => {
-        const d = parseISO(t.data);
-        return t.data.startsWith(monthStr) && !t.estornada;
+        if (viewMode === 'competencia') {
+          const comp = t.competencia || t.data.substring(0, 7);
+          return comp === monthStr && !t.estornada;
+        } else {
+          return t.data.startsWith(monthStr) && !t.estornada;
+        }
       });
 
       const entradas = monthTx.filter(t => t.tipo === 'ENTRADA').reduce((s, t) => s + t.valor, 0);
@@ -42,7 +47,7 @@ export default function CashFlow() {
       months.push({ month: monthStr, entradas, saidas, saldo: entradas - saidas, details });
     }
     return months;
-  }, [transactions, year, config.categories]);
+  }, [transactions, year, config.categories, viewMode]);
 
   const selectedMonthData = monthlyData[parseInt(selectedMonth) - 1];
 
@@ -86,6 +91,22 @@ export default function CashFlow() {
             </option>
           ))}
         </select>
+        <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1">
+          <button 
+            onClick={() => setViewMode('caixa')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              viewMode === 'caixa' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            Regime de Caixa
+          </button>
+          <button 
+            onClick={() => setViewMode('competencia')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+              viewMode === 'competencia' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+            }`}>
+            Regime de Competência
+          </button>
+        </div>
         <div className="flex-1" />
         <button onClick={handleExportCSV}
           className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700 transition-colors">

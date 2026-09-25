@@ -16,6 +16,7 @@ export default function Commitments() {
     dataVencimento: format(new Date(), 'yyyy-MM-dd'),
     frequencia: 'MENSAL', status: 'PENDENTE',
     categoria: 'DESPESA_DIVERSAS', congregacao: '', observacoes: '',
+    competencia: format(new Date(), 'yyyy-MM'),
   };
 
   const [form, setForm] = useState(emptyCommitment);
@@ -43,8 +44,40 @@ export default function Commitments() {
   };
 
   const handleToggleStatus = (c: Commitment) => {
-    const newStatus: CommitmentStatus = c.status === 'PENDENTE' ? 'PAGO' : 'PENDENTE';
-    saveCommitment({ ...c, status: newStatus });
+    if (c.status === 'PENDENTE') {
+      // Ao marcar como pago, pedir competência e data de pagamento
+      const competencia = prompt(
+        'Qual a COMPETÊNCIA deste pagamento?\n' +
+        '(Formato: YYYY-MM, ex: 2024-08 para agosto/2024)\n' +
+        'Deixe vazio para usar o mês atual.',
+        format(new Date(), 'yyyy-MM')
+      );
+      
+      if (competencia === null) return; // Usuário cancelou
+      
+      const dataPagamento = prompt(
+        'Qual a DATA DO PAGAMENTO?\n' +
+        '(Formato: YYYY-MM-DD, ex: 2024-09-15)',
+        format(new Date(), 'yyyy-MM-dd')
+      );
+      
+      if (dataPagamento === null) return; // Usuário cancelou
+      
+      saveCommitment({ 
+        ...c, 
+        status: 'PAGO',
+        competencia: competencia || format(new Date(), 'yyyy-MM'),
+        dataPagamento: dataPagamento || format(new Date(), 'yyyy-MM-dd'),
+      });
+    } else {
+      // Ao desmarcar, limpar competência e data de pagamento
+      saveCommitment({ 
+        ...c, 
+        status: 'PENDENTE',
+        competencia: undefined,
+        dataPagamento: undefined,
+      });
+    }
     setCommitments(getCommitments());
   };
 
@@ -123,8 +156,18 @@ export default function Commitments() {
                 </div>
                 <div className="mt-2 flex flex-wrap gap-4 text-sm text-slate-500">
                   <span className="flex items-center gap-1">
-                    <Calendar size={12} /> {format(parseISO(c.dataVencimento), 'dd/MM/yyyy')}
+                    <Calendar size={12} /> Venc: {format(parseISO(c.dataVencimento), 'dd/MM/yyyy')}
                   </span>
+                  {c.dataPagamento && (
+                    <span className="flex items-center gap-1 text-emerald-600">
+                      <Check size={12} /> Pago: {format(parseISO(c.dataPagamento), 'dd/MM/yyyy')}
+                    </span>
+                  )}
+                  {c.competencia && (
+                    <span className="flex items-center gap-1 text-indigo-600">
+                      Comp: {format(parseISO(c.competencia + '-01'), 'MM/yyyy')}
+                    </span>
+                  )}
                   <span>Frequência: {c.frequencia}</span>
                   <span>Parcela: <strong className="text-slate-700">{formatCurrency(c.valorParcela)}</strong></span>
                   <span>Total: {formatCurrency(c.valorTotal)}</span>
@@ -192,10 +235,15 @@ export default function Commitments() {
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-slate-700 mb-1 block">Vencimento</label>
                   <input type="date" value={form.dataVencimento} onChange={e => setForm({...form, dataVencimento: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Competência</label>
+                  <input type="month" value={form.competencia} onChange={e => setForm({...form, competencia: e.target.value})}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
                 </div>
                 <div>

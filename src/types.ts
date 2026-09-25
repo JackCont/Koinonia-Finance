@@ -73,6 +73,7 @@ export interface Transaction {
   estornada: boolean;
   estornoMotivo?: string;
   createdAt: string;
+  competencia?: string; // Formato: 'YYYY-MM' - mês de referência contábil
 }
 
 export interface Commitment {
@@ -86,6 +87,8 @@ export interface Commitment {
   categoria: TransactionCategory;
   congregacao: string;
   observacoes: string;
+  competencia?: string; // Formato: 'YYYY-MM' - mês de referência contábil
+  dataPagamento?: string; // Data real do pagamento
 }
 
 export interface AuditLog {

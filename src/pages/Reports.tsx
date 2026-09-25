@@ -11,19 +11,30 @@ export default function Reports() {
   const [startDate, setStartDate] = useState(format(new Date(new Date().getFullYear(), 0, 1), 'yyyy-MM-dd'));
   const [endDate, setEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedMember, setSelectedMember] = useState('');
+  const [filterByCompetencia, setFilterByCompetencia] = useState(false);
+  const [competenciaMonth, setCompetenciaMonth] = useState(format(new Date(), 'yyyy-MM'));
   
   const transactions = getTransactions();
   const members = getMembers();
   const config = getConfig();
 
   const filteredTx = useMemo(() => {
-    const start = parseISO(startDate);
-    const end = parseISO(endDate);
-    return transactions.filter(t => {
-      const d = parseISO(t.data);
-      return isWithinInterval(d, { start, end }) && !t.estornada;
-    });
-  }, [transactions, startDate, endDate]);
+    if (filterByCompetencia) {
+      // Filtrar por competência
+      return transactions.filter(t => {
+        const comp = t.competencia || t.data.substring(0, 7);
+        return comp === competenciaMonth && !t.estornada;
+      });
+    } else {
+      // Filtrar por data
+      const start = parseISO(startDate);
+      const end = parseISO(endDate);
+      return transactions.filter(t => {
+        const d = parseISO(t.data);
+        return isWithinInterval(d, { start, end }) && !t.estornada;
+      });
+    }
+  }, [transactions, startDate, endDate, filterByCompetencia, competenciaMonth]);
 
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -171,6 +182,21 @@ export default function Reports() {
             <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)}
               className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
           </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="filterCompetencia" checked={filterByCompetencia} 
+              onChange={e => setFilterByCompetencia(e.target.checked)}
+              className="w-4 h-4 text-indigo-600 rounded" />
+            <label htmlFor="filterCompetencia" className="text-xs font-medium text-slate-600">
+              Filtrar por Competência
+            </label>
+          </div>
+          {filterByCompetencia && (
+            <div>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">Mês Competência</label>
+              <input type="month" value={competenciaMonth} onChange={e => setCompetenciaMonth(e.target.value)}
+                className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+            </div>
+          )}
           {reportType === 'individual' && (
             <div>
               <label className="text-xs font-medium text-slate-600 mb-1 block">Membro</label>
