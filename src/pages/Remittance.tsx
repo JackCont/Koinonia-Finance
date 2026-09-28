@@ -60,8 +60,8 @@ export default function Remittance() {
       const despDiversas = congTx.filter(t => t.categoria === 'DESPESA_DIVERSAS' || t.categoria === 'OUTRAS_DESPESAS').reduce((s, t) => s + t.valor, 0);
       const totalDespesas = agua + luz + aluguel + iptu + jubilados + matCeia + matSecretaria + matLimpeza + viagem + despDiversas;
 
-      // Pastors
-      const pastor = congTx.filter(t => t.categoria === 'DESPESA_PESSOAL' || t.descricao.toLowerCase().includes('pastor')).reduce((s, t) => s + t.valor, 0);
+      // Pastors - apenas categoria DESPESA_PESSOAL
+      const pastor = congTx.filter(t => t.categoria === 'DESPESA_PESSOAL').reduce((s, t) => s + t.valor, 0);
 
       const saldo = receitaBruta - remessa - totalDespesas - pastor;
 
