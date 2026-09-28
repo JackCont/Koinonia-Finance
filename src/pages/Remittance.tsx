@@ -363,89 +363,78 @@ export default function Remittance() {
             </table>
           </div>
 
-          {/* PASTOR */}
-          <div className="mb-6">
-            <h2 className="text-xs font-bold uppercase mb-2 bg-slate-100 px-2 py-1 print:bg-slate-200">PASTOR</h2>
-            <table className="w-full text-xs border-collapse">
-              <thead>
-                <tr className="border-b border-slate-300">
-                  <th className="text-left py-1 px-1 w-8">ORD.</th>
-                  <th className="text-left py-1 px-1">CONGREGAÇÃO</th>
-                  <th className="text-left py-1 px-1">PASTOR</th>
-                  <th className="text-right py-1 px-1">TOTAL PASTOR (D)</th>
-                  <th className="text-left py-1 px-1 w-32"></th>
-                  <th className="text-left py-1 px-1">TESOUREIRO SETORIAL</th>
-                  <th className="text-left py-1 px-1 w-32"></th>
-                  <th className="text-left py-1 px-1">PASTOR REGIONAL</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pastorData.map((row, i) => (
-                  <tr key={i} className="border-b border-slate-100">
-                    <td className="py-1 px-1">{i + 1}</td>
-                    <td className="py-1 px-1">{row.congregacao}</td>
-                    <td className="py-1 px-1">{row.pastorNome}</td>
-                    <td className="py-1 px-1 text-right">{formatCurrency(row.pastor)}</td>
-                    <td></td>
-                    <td className="py-1 px-1"></td>
-                    <td></td>
-                    <td className="py-1 px-1"></td>
+          {/* PASTOR + ASSINATURAS LATERAIS */}
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Coluna Esquerda: Tabela de PASTOR + SALDO */}
+            <div>
+              <h2 className="text-xs font-bold uppercase mb-2 bg-slate-100 px-2 py-1 print:bg-slate-200">PASTOR</h2>
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-300">
+                    <th className="text-left py-1 px-1 w-8">ORD.</th>
+                    <th className="text-left py-1 px-1">CONGREGAÇÃO</th>
+                    <th className="text-left py-1 px-1">PASTOR</th>
+                    <th className="text-right py-1 px-1">TOTAL PASTOR (D)</th>
                   </tr>
-                ))}
-                <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
-                  <td className="py-1.5 px-1" colSpan={3}>TOTAL:</td>
-                  <td className="py-1.5 px-1 text-right">{formatCurrency(totals.pastor)}</td>
-                  <td></td>
-                  <td className="py-1.5 px-1 text-xs">PASTOR SETORIAL</td>
-                  <td></td>
-                  <td className="py-1.5 px-1 text-xs">TESOUREIRO SEDE</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {pastorData.map((row, i) => (
+                    <tr key={i} className="border-b border-slate-100">
+                      <td className="py-1 px-1">{i + 1}</td>
+                      <td className="py-1 px-1">{row.congregacao}</td>
+                      <td className="py-1 px-1">{row.pastorNome}</td>
+                      <td className="py-1 px-1 text-right">{formatCurrency(row.pastor)}</td>
+                    </tr>
+                  ))}
+                  <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
+                    <td className="py-1.5 px-1" colSpan={3}>TOTAL:</td>
+                    <td className="py-1.5 px-1 text-right">{formatCurrency(totals.pastor)}</td>
+                  </tr>
+                </tbody>
+              </table>
 
-          {/* SALDO */}
-          <div className="border-t-2 border-slate-400 pt-3 mt-4 mb-8">
-            <div className="flex justify-between items-end">
-              <div>
-                <p className="text-xs font-bold">
-                  SALDO (E = A - B - C - D): <span className="text-sm">{formatCurrency(totals.saldo)}</span>
-                </p>
-              </div>
-              <div className="text-right text-xs">
-                <p>{config.cidade || 'Cidade'}/{congregations[0]?.cidade?.split('-')[1] || 'UF'}, {new Date().getDate()} de {monthName} de {yearStr}.</p>
+              {/* SALDO */}
+              <div className="border-t-2 border-slate-400 pt-3 mt-4">
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-xs font-bold">
+                      SALDO (E = A - B - C - D): <span className="text-sm">{formatCurrency(totals.saldo)}</span>
+                    </p>
+                  </div>
+                  <div className="text-right text-xs">
+                    <p>{config.cidade || 'Cidade'}/{congregations[0]?.cidade?.split('-')[1] || 'UF'}, {new Date().getDate()} de {monthName} de {yearStr}.</p>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* ASSINATURAS */}
-          <div className="border-t-2 border-slate-400 pt-6 mt-8">
-            <div className="grid grid-cols-2 gap-8 text-xs">
+            {/* Coluna Direita: Espaços para Assinaturas */}
+            <div className="flex flex-col justify-between">
               {/* Tesoureiro Setorial */}
-              <div className="text-center">
-                <div className="border-t border-slate-400 pt-2 mt-12">
-                  <p className="font-semibold">TESOUREIRO SETORIAL</p>
+              <div className="mb-8">
+                <div className="border-t border-slate-400 pt-2 mt-16 text-center">
+                  <p className="text-xs font-semibold">TESOUREIRO SETORIAL</p>
                 </div>
               </div>
 
               {/* Pastor Setorial */}
-              <div className="text-center">
-                <div className="border-t border-slate-400 pt-2 mt-12">
-                  <p className="font-semibold">PASTOR SETORIAL</p>
+              <div className="mb-8">
+                <div className="border-t border-slate-400 pt-2 mt-16 text-center">
+                  <p className="text-xs font-semibold">PASTOR SETORIAL</p>
                 </div>
               </div>
 
               {/* Pastor Regional */}
-              <div className="text-center">
-                <div className="border-t border-slate-400 pt-2 mt-12">
-                  <p className="font-semibold">PASTOR REGIONAL</p>
+              <div className="mb-8">
+                <div className="border-t border-slate-400 pt-2 mt-16 text-center">
+                  <p className="text-xs font-semibold">PASTOR REGIONAL</p>
                 </div>
               </div>
 
               {/* Tesoureiro Sede */}
-              <div className="text-center">
-                <div className="border-t border-slate-400 pt-2 mt-12">
-                  <p className="font-semibold">TESOUREIRO SEDE</p>
+              <div>
+                <div className="border-t border-slate-400 pt-2 mt-16 text-center">
+                  <p className="text-xs font-semibold">TESOUREIRO SEDE</p>
                 </div>
               </div>
             </div>
