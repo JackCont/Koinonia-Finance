@@ -41,7 +41,7 @@ export default function Dashboard({ onNavigate }: Props) {
 
     const dizimos = monthTx.filter(t => t.categoria === 'DIZIMO').reduce((s, t) => s + t.valor, 0);
     const ofertas = monthTx.filter(t => t.categoria === 'OFERTA').reduce((s, t) => s + t.valor, 0);
-    const remessa = dizimos * getActiveRemittancePercentual() / 100;
+    const remessa = (dizimos + ofertas) * getActiveRemittancePercentual() / 100;
 
     // Top contributors this month
     const memberContribs: Record<string, { nome: string; total: number }> = {};

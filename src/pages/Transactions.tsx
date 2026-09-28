@@ -160,16 +160,11 @@ export default function Transactions() {
   };
 
   const periodBalance = useMemo(() => {
-    const periodTransactions = transactions.filter(t => {
-      const matchMonth = !filterMonth || t.data.startsWith(filterMonth);
-      return matchMonth && !t.estornada;
-    });
-
-    const entradas = periodTransactions
+    const entradas = filtered
       .filter(t => t.tipo === 'ENTRADA')
       .reduce((sum, t) => sum + t.valor, 0);
     
-    const saidas = periodTransactions
+    const saidas = filtered
       .filter(t => t.tipo === 'SAIDA')
       .reduce((sum, t) => sum + t.valor, 0);
 
@@ -177,9 +172,9 @@ export default function Transactions() {
       entradas,
       saidas,
       saldo: entradas - saidas,
-      totalTransacoes: periodTransactions.length
+      totalTransacoes: filtered.length
     };
-  }, [transactions, filterMonth]);
+  }, [filtered]);
 
   return (
     <div className="space-y-6">

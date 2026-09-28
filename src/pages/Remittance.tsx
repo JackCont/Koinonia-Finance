@@ -255,7 +255,6 @@ export default function Remittance() {
                   <th className="text-right py-1 px-1">OFERTAS</th>
                   <th className="text-right py-1 px-1">RECEITA BRUTA (A)</th>
                   <th className="text-right py-1 px-1">REMESSA {remittancePercentual}% (B)</th>
-                  <th className="text-right py-1 px-1">MISSÕES</th>
                 </tr>
               </thead>
               <tbody>
@@ -267,7 +266,6 @@ export default function Remittance() {
                     <td className="py-1 px-1 text-right">{formatCurrency(row.ofertas)}</td>
                     <td className="py-1 px-1 text-right font-medium">{formatCurrency(row.receitaBruta)}</td>
                     <td className="py-1 px-1 text-right">{formatCurrency(row.remessa)}</td>
-                    <td className="py-1 px-1 text-right">{formatCurrency(row.missoes)}</td>
                   </tr>
                 ))}
                 <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
@@ -276,6 +274,32 @@ export default function Remittance() {
                   <td className="py-1.5 px-1 text-right">{formatCurrency(totals.ofertas)}</td>
                   <td className="py-1.5 px-1 text-right">{formatCurrency(totals.receitaBruta)}</td>
                   <td className="py-1.5 px-1 text-right">{formatCurrency(totals.remessa)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* MISSÕES */}
+          <div className="mb-6">
+            <h2 className="text-xs font-bold uppercase mb-2 bg-slate-100 px-2 py-1 print:bg-slate-200">MISSÕES</h2>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="border-b border-slate-300">
+                  <th className="text-left py-1 px-1 w-8">ORD.</th>
+                  <th className="text-left py-1 px-1">CONGREGAÇÃO</th>
+                  <th className="text-right py-1 px-1">VALOR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyData.map((row, i) => (
+                  <tr key={i} className="border-b border-slate-100">
+                    <td className="py-1 px-1">{i + 1}</td>
+                    <td className="py-1 px-1 font-medium">{row.congregacao}</td>
+                    <td className="py-1 px-1 text-right">{formatCurrency(row.missoes)}</td>
+                  </tr>
+                ))}
+                <tr className="border-t-2 border-slate-400 font-bold bg-slate-50">
+                  <td className="py-1.5 px-1" colSpan={2}>TOTAL:</td>
                   <td className="py-1.5 px-1 text-right">{formatCurrency(totals.missoes)}</td>
                 </tr>
               </tbody>
@@ -381,7 +405,7 @@ export default function Remittance() {
           </div>
 
           {/* SALDO */}
-          <div className="border-t-2 border-slate-400 pt-3 mt-4">
+          <div className="border-t-2 border-slate-400 pt-3 mt-4 mb-8">
             <div className="flex justify-between items-end">
               <div>
                 <p className="text-xs font-bold">
@@ -390,6 +414,39 @@ export default function Remittance() {
               </div>
               <div className="text-right text-xs">
                 <p>{config.cidade || 'Cidade'}/{congregations[0]?.cidade?.split('-')[1] || 'UF'}, {new Date().getDate()} de {monthName} de {yearStr}.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* ASSINATURAS */}
+          <div className="border-t-2 border-slate-400 pt-6 mt-8">
+            <div className="grid grid-cols-2 gap-8 text-xs">
+              {/* Tesoureiro Setorial */}
+              <div className="text-center">
+                <div className="border-t border-slate-400 pt-2 mt-12">
+                  <p className="font-semibold">TESOUREIRO SETORIAL</p>
+                </div>
+              </div>
+
+              {/* Pastor Setorial */}
+              <div className="text-center">
+                <div className="border-t border-slate-400 pt-2 mt-12">
+                  <p className="font-semibold">PASTOR SETORIAL</p>
+                </div>
+              </div>
+
+              {/* Pastor Regional */}
+              <div className="text-center">
+                <div className="border-t border-slate-400 pt-2 mt-12">
+                  <p className="font-semibold">PASTOR REGIONAL</p>
+                </div>
+              </div>
+
+              {/* Tesoureiro Sede */}
+              <div className="text-center">
+                <div className="border-t border-slate-400 pt-2 mt-12">
+                  <p className="font-semibold">TESOUREIRO SEDE</p>
+                </div>
               </div>
             </div>
           </div>
