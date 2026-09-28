@@ -365,7 +365,18 @@ export default function Transactions() {
               <div className="grid grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-slate-700 mb-1 block">Tipo</label>
-                  <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value as TransactionType})}
+                  <select 
+                    value={form.tipo} 
+                    onChange={e => {
+                      const newType = e.target.value as TransactionType;
+                      // Resetar categoria para a primeira do novo tipo
+                      const firstCategory = config.categories.find(c => c.tipo === newType);
+                      setForm({
+                        ...form, 
+                        tipo: newType,
+                        categoria: (firstCategory ? firstCategory.nome : form.categoria) as TransactionCategory
+                      });
+                    }}
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
                     <option value="ENTRADA">Entrada</option>
                     <option value="SAIDA">Saída</option>
@@ -384,13 +395,15 @@ export default function Transactions() {
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-1 block">Categoria</label>
-                <select value={form.categoria} onChange={e => setForm({...form, categoria: e.target.value as TransactionCategory})}
+                <select 
+                  value={form.categoria} 
+                  onChange={e => setForm({...form, categoria: e.target.value as TransactionCategory})}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
                   {config.categories
                     .filter(c => c.tipo === form.tipo)
                     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
                     .map(c => (
-                      <option key={c.id} value={c.nome}>{c.nome}</option>
+                      <option key={c.id} value={normalizeCategoryName(c.nome)}>{c.nome}</option>
                     ))}
                 </select>
               </div>
