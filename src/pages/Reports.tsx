@@ -13,6 +13,7 @@ export default function Reports() {
   const [selectedMember, setSelectedMember] = useState('');
   const [filterByCompetencia, setFilterByCompetencia] = useState(false);
   const [competenciaMonth, setCompetenciaMonth] = useState(format(new Date(), 'yyyy-MM'));
+  const [dizimistasSortBy, setDizimistasSortBy] = useState<'total-desc' | 'total-asc' | 'nome-asc' | 'nome-desc'>('total-desc');
   
   const transactions = getTransactions();
   const members = getMembers();
@@ -79,8 +80,22 @@ export default function Reports() {
       }
     });
 
-    return Object.values(memberMap).sort((a, b) => b.total - a.total);
-  }, [filteredTx, members]);
+    const sortedMembers = Object.values(memberMap);
+    
+    // Aplicar ordenação selecionada
+    switch (dizimistasSortBy) {
+      case 'total-desc':
+        return sortedMembers.sort((a, b) => b.total - a.total);
+      case 'total-asc':
+        return sortedMembers.sort((a, b) => a.total - b.total);
+      case 'nome-asc':
+        return sortedMembers.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+      case 'nome-desc':
+        return sortedMembers.sort((a, b) => b.nome.localeCompare(a.nome, 'pt-BR'));
+      default:
+        return sortedMembers.sort((a, b) => b.total - a.total);
+    }
+  }, [filteredTx, members, dizimistasSortBy]);
 
   // Individual member data
   const memberHistory = useMemo(() => {
@@ -206,6 +221,18 @@ export default function Reports() {
                 {members.filter(m => m.status === 'ATIVO').sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(m => (
                   <option key={m.id} value={m.id}>{m.nome}</option>
                 ))}
+              </select>
+            </div>
+          )}
+          {reportType === 'dizimistas' && (
+            <div>
+              <label className="text-xs font-medium text-slate-600 mb-1 block">Ordenar por</label>
+              <select value={dizimistasSortBy} onChange={e => setDizimistasSortBy(e.target.value as any)}
+                className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                <option value="total-desc">Valor (Maior → Menor)</option>
+                <option value="total-asc">Valor (Menor → Maior)</option>
+                <option value="nome-asc">Nome (A → Z)</option>
+                <option value="nome-desc">Nome (Z → A)</option>
               </select>
             </div>
           )}
