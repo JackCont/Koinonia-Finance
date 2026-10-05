@@ -61,6 +61,15 @@ export interface Member {
   foto?: string; // Base64 da imagem
 }
 
+export interface Culto {
+  id: string;
+  nome: string;
+  data: string;
+  tipo: 'Culto' | 'EBD' | 'Reunião' | 'Evento';
+  observacoes?: string;
+  createdAt: string;
+}
+
 export interface Transaction {
   id: string;
   data: string;
@@ -70,6 +79,7 @@ export interface Transaction {
   memberId?: string;
   descricao: string;
   congregacao: string;
+  cultoId?: string;
   documento?: string;
   estornada: boolean;
   estornoMotivo?: string;
@@ -136,6 +146,7 @@ export interface BackupData {
   auditLog: AuditLog[];
   config: AppConfig;
   users: User[];
+  cultos: Culto[];
 }
 
 export interface AppTheme {

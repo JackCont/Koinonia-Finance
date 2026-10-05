@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter, Edit2 } from 'lucide-react';
-import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName } from '../store';
-import { Transaction, TransactionType, TransactionCategory } from '../types';
+import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter, Edit2, Calendar } from 'lucide-react';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName, getCultos, saveCulto } from '../store';
+import { Transaction, TransactionType, TransactionCategory, Culto } from '../types';
 import { format, parseISO } from 'date-fns';
 
 export default function Transactions() {
@@ -13,6 +13,8 @@ export default function Transactions() {
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterMonth, setFilterMonth] = useState('');
+  const [showCultoForm, setShowCultoForm] = useState(false);
+  const [cultos, setCultos] = useState(getCultos());
   const config = getConfig();
   const members = getMembers();
   const currentUser = getCurrentUser();
@@ -26,6 +28,7 @@ export default function Transactions() {
     descricao: '',
     congregacao: '',
     memberId: '',
+    cultoId: '',
     estornada: false,
     competencia: format(new Date(), 'yyyy-MM'),
   };
@@ -65,8 +68,10 @@ export default function Transactions() {
   }, [transactions, search, filterType, filterCategory, filterMonth]);
 
   const handleSave = () => {
-    if (!form.descricao.trim() || form.valor <= 0) {
-      alert('Descrição e valor são obrigatórios (valor > 0)');
+    // Descrição é obrigatória exceto para Dízimos e Ofertas
+    const isDizimoOuOferta = form.categoria === 'DIZIMO' || form.categoria === 'OFERTA';
+    if ((!form.descricao.trim() && !isDizimoOuOferta) || form.valor <= 0) {
+      alert(isDizimoOuOferta ? 'Valor é obrigatório (valor > 0)' : 'Descrição e valor são obrigatórios (valor > 0)');
       return;
     }
     
@@ -97,6 +102,31 @@ export default function Transactions() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyTransaction);
+  };
+
+  const handleCreateCulto = (nome: string, data: string, tipo: Culto['tipo']) => {
+    const novoCulto: Culto = {
+      id: uuidv4(),
+      nome,
+      data,
+      tipo,
+      createdAt: new Date().toISOString(),
+    };
+    saveCulto(novoCulto);
+    setCultos(getCultos());
+    setForm({ ...form, cultoId: novoCulto.id, data: novoCulto.data });
+    setShowCultoForm(false);
+  };
+
+  const handleSelectCulto = (cultoId: string) => {
+    if (cultoId) {
+      const culto = cultos.find(c => c.id === cultoId);
+      if (culto) {
+        setForm({ ...form, cultoId: culto.id, data: culto.data });
+      }
+    } else {
+      setForm({ ...form, cultoId: '' });
+    }
   };
 
   const handleEdit = (t: Transaction) => {
@@ -402,10 +432,42 @@ export default function Transactions() {
                     ))}
                 </select>
               </div>
+              
+              {/* Seletor de Culto */}
               <div>
-                <label className="text-sm font-medium text-slate-700 mb-1 block">Descrição *</label>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Culto (opcional)</label>
+                <div className="flex gap-2">
+                  <select 
+                    value={form.cultoId || ''} 
+                    onChange={e => handleSelectCulto(e.target.value)}
+                    className="flex-1 px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                    <option value="">-- Sem culto específico --</option>
+                    {cultos.sort((a, b) => b.data.localeCompare(a.data)).map(c => (
+                      <option key={c.id} value={c.id}>{format(parseISO(c.data), 'dd/MM/yyyy')} - {c.nome}</option>
+                    ))}
+                  </select>
+                  <button 
+                    type="button"
+                    onClick={() => setShowCultoForm(true)}
+                    className="px-3 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-1">
+                    <Plus size={14} /> Novo
+                  </button>
+                </div>
+                {form.cultoId && (
+                  <p className="text-xs text-indigo-600 mt-1">
+                    <Calendar size={12} className="inline mr-1" />
+                    Data do lançamento será automaticamente definida pela data do culto
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">
+                  Descrição {(form.categoria === 'DIZIMO' || form.categoria === 'OFERTA') ? '(opcional)' : '*'}
+                </label>
                 <input type="text" value={form.descricao} onChange={e => setForm({...form, descricao: e.target.value})}
-                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" placeholder="Ex: Dízimo João Silva" />
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" 
+                  placeholder={form.categoria === 'DIZIMO' || form.categoria === 'OFERTA' ? 'Ex: Dízimo João Silva (opcional)' : 'Ex: Conta de luz janeiro'} />
               </div>
               <div>
                 <label className="text-sm font-medium text-slate-700 mb-1 block">Congregação</label>
@@ -445,6 +507,85 @@ export default function Transactions() {
           </div>
         </div>
       )}
+
+      {/* Modal para Criar Novo Culto */}
+      {showCultoForm && (
+        <CultoFormModal
+          onClose={() => setShowCultoForm(false)}
+          onSave={handleCreateCulto}
+        />
+      )}
+    </div>
+  );
+}
+
+// Componente auxiliar para o formulário de culto
+function CultoFormModal({ onClose, onSave }: { onClose: () => void; onSave: (nome: string, data: string, tipo: Culto['tipo']) => void }) {
+  const [nome, setNome] = useState('');
+  const [data, setData] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [tipo, setTipo] = useState<Culto['tipo']>('Culto');
+
+  const handleSave = () => {
+    if (!nome.trim()) {
+      alert('Nome do culto é obrigatório');
+      return;
+    }
+    onSave(nome, data, tipo);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-bold text-slate-800">Novo Culto</h3>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Nome do Culto *</label>
+            <input 
+              type="text" 
+              value={nome} 
+              onChange={e => setNome(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" 
+              placeholder="Ex: Culto de Domingo Manhã"
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Data *</label>
+            <input 
+              type="date" 
+              value={data} 
+              onChange={e => setData(e.target.value)}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" 
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">Tipo</label>
+            <select 
+              value={tipo} 
+              onChange={e => setTipo(e.target.value as Culto['tipo'])}
+              className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+              <option value="Culto">Culto</option>
+              <option value="EBD">EBD</option>
+              <option value="Reunião">Reunião</option>
+              <option value="Evento">Evento</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-6 flex gap-3">
+          <button onClick={onClose} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+            Cancelar
+          </button>
+          <button onClick={handleSave} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700">
+            Criar Culto
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

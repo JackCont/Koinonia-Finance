@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   USERS: 'iead_users',
   CURRENT_USER: 'iead_current_user',
   THEME: 'iead_theme',
+  CULTOS: 'iead_cultos',
 };
 
 function generateIntegrityKey(input: string): string {
@@ -247,6 +248,25 @@ export function deleteMember(id: string): void {
   addAuditLog('MEMBRO', `Membro ${id} removido`);
 }
 
+// ============ CULTOS ============
+export function getCultos(): Culto[] {
+  return getFromStorage<Culto[]>(STORAGE_KEYS.CULTOS, []);
+}
+
+export function saveCulto(culto: Culto): void {
+  const cultos = getCultos();
+  const idx = cultos.findIndex(c => c.id === culto.id);
+  if (idx >= 0) cultos[idx] = culto;
+  else cultos.push(culto);
+  saveToStorage(STORAGE_KEYS.CULTOS, cultos);
+  addAuditLog('CULTO', `Culto ${culto.nome} salvo`);
+}
+
+export function deleteCulto(id: string): void {
+  saveToStorage(STORAGE_KEYS.CULTOS, getCultos().filter(c => c.id !== id));
+  addAuditLog('CULTO', `Culto ${id} removido`);
+}
+
 // ============ TRANSACTIONS ============
 export function getTransactions(): Transaction[] {
   return getFromStorage<Transaction[]>(STORAGE_KEYS.TRANSACTIONS, []);
@@ -422,6 +442,7 @@ export function createBackup(): BackupData {
     auditLog: getAuditLog(),
     config: getConfig(),
     users: getUsers(),
+    cultos: getCultos(),
   };
   const str = JSON.stringify({ ...backup, integrityKey: '' });
   backup.integrityKey = generateIntegrityKey(str);
@@ -444,6 +465,7 @@ export function restoreBackup(backup: BackupData): boolean {
   saveToStorage(STORAGE_KEYS.AUDIT_LOG, backup.auditLog);
   saveToStorage(STORAGE_KEYS.CONFIG, backup.config);
   if (backup.users) saveToStorage(STORAGE_KEYS.USERS, backup.users);
+  if (backup.cultos) saveToStorage(STORAGE_KEYS.CULTOS, backup.cultos);
   return true;
 }
 
