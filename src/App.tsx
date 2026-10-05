@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ArrowLeftRight, TrendingUp, FileText, 
   Settings, Download, Upload, Menu, X, Church, ClipboardList,
-  Shield, LogOut, FileSpreadsheet, Palette
+  Shield, LogOut, FileSpreadsheet, Palette, Calendar
 } from 'lucide-react';
 import { getCurrentUser, logout, getTheme } from './store';
 import { User } from './types';
@@ -18,8 +18,9 @@ import Commitments from './pages/Commitments';
 import AdminUsers from './pages/AdminUsers';
 import Remittance from './pages/Remittance';
 import Customization from './pages/Customization';
+import CultsManagement from './pages/CultsManagement';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization';
+type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults';
 
 interface NavItem {
   id: Page;
@@ -32,6 +33,7 @@ const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Painel', icon: <LayoutDashboard size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
   { id: 'members', label: 'Membros', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'cults', label: 'Cultos', icon: <Calendar size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'commitments', label: 'Compromissos', icon: <ClipboardList size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'remittance', label: 'Remessa Mensal', icon: <FileSpreadsheet size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONTADOR'] },
   { id: 'cashflow', label: 'Fluxo de Caixa', icon: <TrendingUp size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
@@ -92,6 +94,7 @@ export default function App() {
       case 'importexport': return <ImportExport />;
       case 'admin': return <AdminUsers />;
       case 'customization': return <Customization />;
+      case 'cults': return <CultsManagement />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };
