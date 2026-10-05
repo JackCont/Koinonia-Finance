@@ -12,7 +12,7 @@ export default function Transactions() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [filterMonth, setFilterMonth] = useState('');
+  const [filterMonth, setFilterMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [showCultoForm, setShowCultoForm] = useState(false);
   const [cultos, setCultos] = useState(getCultos());
   const config = getConfig();
@@ -114,7 +114,14 @@ export default function Transactions() {
     };
     saveCulto(novoCulto);
     setCultos(getCultos());
-    setForm({ ...form, cultoId: novoCulto.id, data: novoCulto.data });
+    // Ao criar um culto, atualiza data e competência para o mês do culto
+    const competenciaCulto = data.substring(0, 7); // Extrai yyyy-MM da data
+    setForm({ 
+      ...form, 
+      cultoId: novoCulto.id, 
+      data: novoCulto.data,
+      competencia: competenciaCulto
+    });
     setShowCultoForm(false);
   };
 
@@ -122,10 +129,22 @@ export default function Transactions() {
     if (cultoId) {
       const culto = cultos.find(c => c.id === cultoId);
       if (culto) {
-        setForm({ ...form, cultoId: culto.id, data: culto.data });
+        // Ao selecionar um culto, atualiza data e competência para o mês do culto
+        const competenciaCulto = culto.data.substring(0, 7); // Extrai yyyy-MM da data
+        setForm({ 
+          ...form, 
+          cultoId: culto.id, 
+          data: culto.data,
+          competencia: competenciaCulto
+        });
       }
     } else {
-      setForm({ ...form, cultoId: '' });
+      // Ao desmarcar o culto, mantém a data atual mas reseta competência para o mês atual
+      setForm({ 
+        ...form, 
+        cultoId: '',
+        competencia: format(new Date(), 'yyyy-MM')
+      });
     }
   };
 
@@ -413,9 +432,21 @@ export default function Transactions() {
                     className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-slate-700 mb-1 block">Competência</label>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">
+                    Competência
+                    {form.cultoId && (
+                      <span className="ml-2 text-xs text-indigo-600 font-normal">(auto)</span>
+                    )}
+                  </label>
                   <input type="month" value={form.competencia} onChange={e => setForm({...form, competencia: e.target.value})}
-                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none" />
+                    className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none ${
+                      form.cultoId 
+                        ? 'border-indigo-300 bg-indigo-50 focus:border-indigo-400' 
+                        : 'border-slate-200 focus:border-indigo-400'
+                    }`} />
+                  {form.cultoId && (
+                    <p className="text-xs text-slate-500 mt-1">Ajustada automaticamente pelo culto selecionado</p>
+                  )}
                 </div>
               </div>
               <div>
@@ -456,7 +487,7 @@ export default function Transactions() {
                 {form.cultoId && (
                   <p className="text-xs text-indigo-600 mt-1">
                     <Calendar size={12} className="inline mr-1" />
-                    Data do lançamento será automaticamente definida pela data do culto
+                    Data e competência serão automaticamente definidas pela data do culto
                   </p>
                 )}
               </div>
