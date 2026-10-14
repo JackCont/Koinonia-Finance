@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -12,6 +12,7 @@ const STORAGE_KEYS = {
   THEME: 'iead_theme',
   CULTOS: 'iead_cultos',
   FIXED_VALUES: 'iead_fixed_values',
+  PASTORS: 'iead_pastors',
 };
 
 function generateIntegrityKey(input: string): string {
@@ -386,32 +387,23 @@ export function getFixedValueByCategory(categoria: string): number {
   return found?.valor || 0;
 }
 
-export function saveFixedValue(fixedValue: FixedValue): void {
-  const fixedValues = getFixedValues();
-  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
-  if (idx >= 0) fixedValues[idx] = fixedValue;
-  else fixedValues.push(fixedValue);
-  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
+// ============ PASTORS ============
+export function getPastors(): Pastor[] {
+  return getFromStorage<Pastor[]>(STORAGE_KEYS.PASTORS, []);
 }
 
-export function getFixedValueByCategory(categoria: string): number {
-  const fixedValues = getFixedValues();
-  const found = fixedValues.find(f => f.categoria === categoria);
-  return found?.valor || 0;
+export function savePastor(pastor: Pastor): void {
+  const pastors = getPastors();
+  const idx = pastors.findIndex(p => p.id === pastor.id);
+  if (idx >= 0) pastors[idx] = pastor;
+  else pastors.push(pastor);
+  saveToStorage(STORAGE_KEYS.PASTORS, pastors);
+  addAuditLog('PASTOR', `Pastor ${pastor.nome} salvo`);
 }
 
-export function saveFixedValue(fixedValue: FixedValue): void {
-  const fixedValues = getFixedValues();
-  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
-  if (idx >= 0) fixedValues[idx] = fixedValue;
-  else fixedValues.push(fixedValue);
-  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
-}
-
-export function getFixedValueByCategory(categoria: string): number {
-  const fixedValues = getFixedValues();
-  const found = fixedValues.find(f => f.categoria === categoria);
-  return found?.valor || 0;
+export function deletePastor(id: string): void {
+  saveToStorage(STORAGE_KEYS.PASTORS, getPastors().filter(p => p.id !== id));
+  addAuditLog('PASTOR', `Pastor ${id} removido`);
 }
 
 // ============ AUDIT LOG ============
