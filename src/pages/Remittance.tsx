@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { getTransactions, getConfig, getActiveRemittancePercentual, getRemittanceRules, exportToCSV } from '../store';
+import { getTransactions, getConfig, getActiveRemittancePercentual, getRemittanceRules, exportToCSV, getFixedValues } from '../store';
 import { format, parseISO, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Printer, Download, Calendar } from 'lucide-react';
@@ -36,6 +36,11 @@ export default function Remittance() {
       }
     });
 
+    // Obter valores fixos
+    const fixedValues = getFixedValues();
+    const missoesFixo = fixedValues.find(fv => fv.id === 'missoes')?.valor || 850;
+    const jubiladosFixo = fixedValues.find(fv => fv.id === 'jubilados')?.valor || 750;
+
     const allData = congregations.map(cong => {
       const congTx = selectedCong === 'all' 
         ? monthTx.filter(t => t.congregacao === cong.nome || !t.congregacao)
@@ -43,7 +48,8 @@ export default function Remittance() {
 
       const dizimos = congTx.filter(t => t.categoria === 'DIZIMO').reduce((s, t) => s + t.valor, 0);
       const ofertas = congTx.filter(t => t.categoria === 'OFERTA').reduce((s, t) => s + t.valor, 0);
-      const missoes = congTx.filter(t => t.categoria === 'MISSOES' || t.categoria === 'DESPESA_MISSIONARIA').reduce((s, t) => s + t.valor, 0);
+      // Missões é apenas informativo, não compõe receitas
+      const missoes = missoesFixo; // Valor fixo cadastrado
       const receitaBruta = dizimos + ofertas;
       const remessa = receitaBruta * remittancePercentual / 100;
 
@@ -52,7 +58,8 @@ export default function Remittance() {
       const luz = congTx.filter(t => t.categoria === 'DESPESA_LUZ').reduce((s, t) => s + t.valor, 0);
       const aluguel = congTx.filter(t => t.categoria === 'DESPESA_ALUGUEL').reduce((s, t) => s + t.valor, 0);
       const iptu = congTx.filter(t => t.categoria === 'DESPESA_IPTU').reduce((s, t) => s + t.valor, 0);
-      const jubilados = congTx.filter(t => t.categoria === 'DESPESA_JUBILADOS').reduce((s, t) => s + t.valor, 0);
+      // Jubilados usa valor fixo cadastrado, independente de lançamento
+      const jubilados = jubiladosFixo; // Valor fixo cadastrado
       const matCeia = congTx.filter(t => t.categoria === 'DESPESA_CEIA').reduce((s, t) => s + t.valor, 0);
       const matSecretaria = congTx.filter(t => t.categoria === 'DESPESA_SECRETARIA').reduce((s, t) => s + t.valor, 0);
       const matLimpeza = congTx.filter(t => t.categoria === 'DESPESA_LIMPEZA').reduce((s, t) => s + t.valor, 0);

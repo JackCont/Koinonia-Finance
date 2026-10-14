@@ -11,7 +11,23 @@ export type TransactionCategory =
   | 'DESPESA_LIMPEZA' | 'DESPESA_VIAGEM' | 'DESPESA_DIVERSAS'
   | 'DESPESA_PESSOAL' | 'DESPESA_MANUTENCAO' | 'DESPESA_MISSIONARIA'
   | 'REPASSE_DENOMINACIONAL' | 'PATRIMONIO'
-  | 'OUTRAS_RECEITAS' | 'OUTRAS_DESPESAS' | 'MISSOES';
+  | 'OUTRAS_RECEITAS' | 'OUTRAS_DESPESAS' | 'MISSOES' | 'PROVISAO';
+
+export type ProvisionStatus = 'PENDENTE' | 'UTILIZADA' | 'CANCELADA';
+
+export interface Provision {
+  id: string;
+  data: string; // yyyy-MM-dd
+  competencia: string; // yyyy-MM - mês de origem da sobra
+  competenciaDestino: string; // yyyy-MM - mês onde será utilizada
+  valor: number;
+  descricao: string;
+  categoriaDestino?: string; // categoria da despesa que será paga
+  status: ProvisionStatus;
+  congregacao: string;
+  observacoes?: string;
+  createdAt: string;
+}
 
 export type UserRole = 'MASTER' | 'ADMIN' | 'TESOURARIA' | 'CONSELHO' | 'CONTADOR';
 

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ArrowLeftRight, TrendingUp, FileText, 
   Settings, Download, Upload, Menu, X, Church, ClipboardList,
-  Shield, LogOut, FileSpreadsheet, Palette, Calendar
+  Shield, LogOut, FileSpreadsheet, Palette, Calendar, DollarSign, Target
 } from 'lucide-react';
 import { getCurrentUser, logout, getTheme } from './store';
 import { User } from './types';
@@ -20,8 +20,11 @@ import Remittance from './pages/Remittance';
 import Customization from './pages/Customization';
 import CultsManagement from './pages/CultsManagement';
 import Congregations from './pages/Congregations';
+import FixedValuesConfig from './pages/FixedValuesConfig';
+import Provisions from './pages/Provisions';
+import ProvisionsReport from './pages/ProvisionsReport';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations';
+type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport';
 
 interface NavItem {
   id: Page;
@@ -37,9 +40,12 @@ const navItems: NavItem[] = [
   { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'cults', label: 'Cultos', icon: <Calendar size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'commitments', label: 'Compromissos', icon: <ClipboardList size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'provisions', label: 'Provisões', icon: <FileText size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'provisionsreport', label: 'Rel. Provisões', icon: <FileText size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
   { id: 'remittance', label: 'Remessa Mensal', icon: <FileSpreadsheet size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONTADOR'] },
   { id: 'cashflow', label: 'Fluxo de Caixa', icon: <TrendingUp size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
   { id: 'reports', label: 'Relatórios', icon: <FileText size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
+  { id: 'fixedvalues', label: 'Valores Fixos', icon: <DollarSign size={20} />, roles: ['MASTER', 'ADMIN'] },
   { id: 'importexport', label: 'Importar/Exportar', icon: <Download size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'admin', label: 'Administração', icon: <Shield size={20} />, roles: ['MASTER', 'ADMIN'] },
   { id: 'settings', label: 'Configurações', icon: <Settings size={20} />, roles: ['MASTER', 'ADMIN'] },
@@ -98,6 +104,9 @@ export default function App() {
       case 'customization': return <Customization />;
       case 'cults': return <CultsManagement />;
       case 'congregations': return <Congregations />;
+      case 'fixedvalues': return <FixedValuesConfig />;
+      case 'provisions': return <Provisions />;
+      case 'provisionsreport': return <ProvisionsReport />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };

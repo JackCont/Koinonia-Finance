@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor, Provision } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -13,6 +13,7 @@ const STORAGE_KEYS = {
   CULTOS: 'iead_cultos',
   FIXED_VALUES: 'iead_fixed_values',
   PASTORS: 'iead_pastors',
+  PROVISIONS: 'iead_provisions',
 };
 
 function generateIntegrityKey(input: string): string {
@@ -103,6 +104,9 @@ export function normalizeCategoryName(name: string): string {
     'outra receita': 'OUTRAS_RECEITAS',
     'outras despesas': 'OUTRAS_DESPESAS',
     'outra despesa': 'OUTRAS_DESPESAS',
+    'provisao': 'PROVISAO',
+    'provisões': 'PROVISAO',
+    'provisoes': 'PROVISAO',
   };
   
   // Tenta encontrar no mapeamento
@@ -117,7 +121,7 @@ export function normalizeCategoryName(name: string): string {
     'DESPESA_AGUA', 'DESPESA_LUZ', 'DESPESA_ALUGUEL', 'DESPESA_IPTU',
     'DESPESA_JUBILADOS', 'DESPESA_CEIA', 'DESPESA_SECRETARIA', 'DESPESA_LIMPEZA',
     'DESPESA_VIAGEM', 'DESPESA_DIVERSAS', 'DESPESA_PESSOAL', 'DESPESA_MANUTENCAO',
-    'DESPESA_MISSIONARIA', 'REPASSE_DENOMINACIONAL', 'OUTRAS_DESPESAS'
+    'DESPESA_MISSIONARIA', 'REPASSE_DENOMINACIONAL', 'OUTRAS_DESPESAS', 'PROVISAO'
   ];
   
   if (validCategories.includes(upperName)) {
@@ -147,6 +151,7 @@ const defaultCategories: CategoryConfig[] = [
   { id: '16', nome: 'Pastor', tipo: 'SAIDA', cor: '#7c3aed' },
   { id: '17', nome: 'Patrimônio', tipo: 'ENTRADA', cor: '#059669' },
   { id: '18', nome: 'Outras Despesas', tipo: 'SAIDA', cor: '#475569' },
+  { id: '19', nome: 'Provisão', tipo: 'SAIDA', cor: '#f59e0b' },
 ];
 
 const defaultConfig: AppConfig = {
@@ -390,6 +395,25 @@ export function savePastor(pastor: Pastor): void {
 export function deletePastor(id: string): void {
   saveToStorage(STORAGE_KEYS.PASTORS, getPastors().filter(p => p.id !== id));
   addAuditLog('PASTOR', `Pastor ${id} removido`);
+}
+
+// ============ PROVISIONS ============
+export function getProvisions(): Provision[] {
+  return getFromStorage<Provision[]>(STORAGE_KEYS.PROVISIONS, []);
+}
+
+export function saveProvision(provision: Provision): void {
+  const provisions = getProvisions();
+  const idx = provisions.findIndex(p => p.id === provision.id);
+  if (idx >= 0) provisions[idx] = provision;
+  else provisions.push(provision);
+  saveToStorage(STORAGE_KEYS.PROVISIONS, provisions);
+  addAuditLog('PROVISAO', `Provisão de R$ ${provision.valor.toFixed(2)} salva`);
+}
+
+export function deleteProvision(id: string): void {
+  saveToStorage(STORAGE_KEYS.PROVISIONS, getProvisions().filter(p => p.id !== id));
+  addAuditLog('PROVISAO', `Provisão ${id} removida`);
 }
 
 // ============ AUDIT LOG ============
