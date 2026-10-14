@@ -11,6 +11,7 @@ const STORAGE_KEYS = {
   CURRENT_USER: 'iead_current_user',
   THEME: 'iead_theme',
   CULTOS: 'iead_cultos',
+  FIXED_VALUES: 'iead_fixed_values',
 };
 
 function generateIntegrityKey(input: string): string {
@@ -339,6 +340,78 @@ export function saveCommitment(commitment: Commitment): void {
 
 export function deleteCommitment(id: string): void {
   saveToStorage(STORAGE_KEYS.COMMITMENTS, getCommitments().filter(c => c.id !== id));
+}
+
+// ============ FIXED VALUES ============
+export interface FixedValue {
+  id: string;
+  categoria: string;
+  valor: number;
+  descricao: string;
+}
+
+export function getFixedValues(): FixedValue[] {
+  const defaults: FixedValue[] = [
+    { id: 'jubilados', categoria: 'DESPESA_JUBILADOS', valor: 750.00, descricao: 'Jubilados' },
+    { id: 'missoes', categoria: 'MISSOES', valor: 850.00, descricao: 'Missões' },
+  ];
+  return getFromStorage<FixedValue[]>(STORAGE_KEYS.FIXED_VALUES, defaults);
+}
+
+export function saveFixedValue(fixedValue: FixedValue): void {
+  const fixedValues = getFixedValues();
+  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
+  if (idx >= 0) fixedValues[idx] = fixedValue;
+  else fixedValues.push(fixedValue);
+  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
+}
+
+export function getFixedValueByCategory(categoria: string): number {
+  const fixedValues = getFixedValues();
+  const found = fixedValues.find(f => f.categoria === categoria);
+  return found?.valor || 0;
+}
+
+export function saveFixedValue(fixedValue: FixedValue): void {
+  const fixedValues = getFixedValues();
+  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
+  if (idx >= 0) fixedValues[idx] = fixedValue;
+  else fixedValues.push(fixedValue);
+  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
+}
+
+export function getFixedValueByCategory(categoria: string): number {
+  const fixedValues = getFixedValues();
+  const found = fixedValues.find(f => f.categoria === categoria);
+  return found?.valor || 0;
+}
+
+export function saveFixedValue(fixedValue: FixedValue): void {
+  const fixedValues = getFixedValues();
+  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
+  if (idx >= 0) fixedValues[idx] = fixedValue;
+  else fixedValues.push(fixedValue);
+  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
+}
+
+export function getFixedValueByCategory(categoria: string): number {
+  const fixedValues = getFixedValues();
+  const found = fixedValues.find(f => f.categoria === categoria);
+  return found?.valor || 0;
+}
+
+export function saveFixedValue(fixedValue: FixedValue): void {
+  const fixedValues = getFixedValues();
+  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
+  if (idx >= 0) fixedValues[idx] = fixedValue;
+  else fixedValues.push(fixedValue);
+  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
+}
+
+export function getFixedValueByCategory(categoria: string): number {
+  const fixedValues = getFixedValues();
+  const found = fixedValues.find(f => f.categoria === categoria);
+  return found?.valor || 0;
 }
 
 // ============ AUDIT LOG ============
