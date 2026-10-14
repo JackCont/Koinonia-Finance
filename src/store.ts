@@ -373,20 +373,6 @@ export function getFixedValueByCategory(categoria: string): number {
   return found?.valor || 0;
 }
 
-export function saveFixedValue(fixedValue: FixedValue): void {
-  const fixedValues = getFixedValues();
-  const idx = fixedValues.findIndex(f => f.id === fixedValue.id);
-  if (idx >= 0) fixedValues[idx] = fixedValue;
-  else fixedValues.push(fixedValue);
-  saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
-}
-
-export function getFixedValueByCategory(categoria: string): number {
-  const fixedValues = getFixedValues();
-  const found = fixedValues.find(f => f.categoria === categoria);
-  return found?.valor || 0;
-}
-
 // ============ PASTORS ============
 export function getPastors(): Pastor[] {
   return getFromStorage<Pastor[]>(STORAGE_KEYS.PASTORS, []);
