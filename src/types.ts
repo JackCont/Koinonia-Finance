@@ -15,6 +15,31 @@ export type TransactionCategory =
 
 export type UserRole = 'MASTER' | 'ADMIN' | 'TESOURARIA' | 'CONSELHO' | 'CONTADOR';
 
+export interface Pastor {
+  id: string;
+  nome: string;
+  congregacao: string;
+  dataInicio: string; // yyyy-MM-dd
+  dataFim?: string;    // yyyy-MM-dd - vazio = ativo
+  ativo: boolean;
+  observacoes?: string;
+}
+
+export interface CategoryPeriod {
+  id: string;
+  categoria: string;
+  dataInicio: string; // yyyy-MM-dd
+  dataFim?: string;    // yyyy-MM-dd - vazio = vigente
+  ativo: boolean;
+}
+
+export interface FixedValue {
+  id: string;
+  categoria: string;
+  valor: number;
+  descricao: string;
+}
+
 export interface User {
   id: string;
   username: string;
