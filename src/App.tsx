@@ -19,8 +19,9 @@ import AdminUsers from './pages/AdminUsers';
 import Remittance from './pages/Remittance';
 import Customization from './pages/Customization';
 import CultsManagement from './pages/CultsManagement';
+import Congregations from './pages/Congregations';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults';
+type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations';
 
 interface NavItem {
   id: Page;
@@ -32,6 +33,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Painel', icon: <LayoutDashboard size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
   { id: 'members', label: 'Membros', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'congregations', label: 'Congregações', icon: <Church size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'cults', label: 'Cultos', icon: <Calendar size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'commitments', label: 'Compromissos', icon: <ClipboardList size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
@@ -95,6 +97,7 @@ export default function App() {
       case 'admin': return <AdminUsers />;
       case 'customization': return <Customization />;
       case 'cults': return <CultsManagement />;
+      case 'congregations': return <Congregations />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };

@@ -43,6 +43,11 @@ export interface Congregation {
   setor: string;
   pastor: string;
   ativo: boolean;
+  dataInicio?: string; // yyyy-MM-dd - quando a congregação foi ativada
+  dataFim?: string;    // yyyy-MM-dd - quando foi desativada (vazio = ativa)
+  endereco?: string;
+  telefone?: string;
+  observacoes?: string;
 }
 
 export interface Member {
