@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter, Edit2, Calendar } from 'lucide-react';
-import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName, getCultos, saveCulto } from '../store';
-import { Transaction, TransactionType, TransactionCategory, Culto } from '../types';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName, getCultos, saveCulto, getProvisions, saveProvision, updateProvisionUsage } from '../store';
+import { Transaction, TransactionType, TransactionCategory, Culto, Provision } from '../types';
 import { format, parseISO } from 'date-fns';
 
 export default function Transactions() {
@@ -15,6 +15,8 @@ export default function Transactions() {
   const [filterMonth, setFilterMonth] = useState(format(new Date(), 'yyyy-MM'));
   const [showCultoForm, setShowCultoForm] = useState(false);
   const [cultos, setCultos] = useState(getCultos());
+  const [provisions, setProvisions] = useState(getProvisions());
+  const [selectedProvisions, setSelectedProvisions] = useState<Array<{provisionId: string, valorUtilizado: number}>>([]);
   const config = getConfig();
   const members = getMembers();
   const currentUser = getCurrentUser();
@@ -31,6 +33,10 @@ export default function Transactions() {
     cultoId: '',
     estornada: false,
     competencia: format(new Date(), 'yyyy-MM'),
+    ehProvisao: false,
+    usaProvisao: false,
+    provisonUtilizadas: [],
+    afetaCaixa: true,
   };
 
   const [form, setForm] = useState(emptyTransaction);
@@ -75,8 +81,52 @@ export default function Transactions() {
       return;
     }
     
+    // Validar provisões selecionadas
+    if (form.usaProvisao && selectedProvisions.length === 0) {
+      alert('Selecione pelo menos uma provisão ou desmarque a opção "Usar Provisão"');
+      return;
+    }
+    
+    // Validar se o valor das provisões selecionadas é suficiente
+    if (form.usaProvisao) {
+      const totalProvisoes = selectedProvisions.reduce((sum, p) => sum + p.valorUtilizado, 0);
+      if (totalProvisoes > form.valor) {
+        alert(`O valor das provisões selecionadas (R$ ${totalProvisoes.toFixed(2)}) é maior que o valor do lançamento (R$ ${form.valor.toFixed(2)})`);
+        return;
+      }
+    }
+    
     // Normalizar categoria antes de salvar
     const normalizedCategoria = normalizeCategoryName(form.categoria);
+    
+    // Se é uma saída e está marcada como provisão, criar a provisão automaticamente
+    if (form.tipo === 'SAIDA' && form.ehProvisao && !editingId) {
+      const newProvision: Provision = {
+        id: uuidv4(),
+        data: form.data,
+        competencia: form.competencia || form.data.substring(0, 7),
+        competenciaDestino: form.competencia || form.data.substring(0, 7),
+        valor: form.valor,
+        descricao: form.descricao || 'Provisão criada automaticamente',
+        categoriaDestino: normalizedCategoria,
+        status: 'PENDENTE',
+        congregacao: form.congregacao,
+        observacoes: 'Criada automaticamente a partir de lançamento',
+        createdAt: new Date().toISOString(),
+        valorUtilizado: 0,
+        saldoDisponivel: form.valor,
+      };
+      saveProvision(newProvision);
+      setProvisions(getProvisions());
+    }
+    
+    // Se está usando provisão, atualizar o saldo das provisões selecionadas
+    if (form.usaProvisao && selectedProvisions.length > 0) {
+      selectedProvisions.forEach(sp => {
+        updateProvisionUsage(sp.provisionId, sp.valorUtilizado);
+      });
+      setProvisions(getProvisions());
+    }
     
     if (editingId) {
       const existing = transactions.find(t => t.id === editingId);
@@ -85,6 +135,7 @@ export default function Transactions() {
           ...existing,
           ...form,
           categoria: normalizedCategoria as TransactionCategory,
+          provisonUtilizadas: form.usaProvisao ? selectedProvisions : [],
         };
         saveTransaction(updated);
       }
@@ -94,6 +145,7 @@ export default function Transactions() {
         id: uuidv4(),
         categoria: normalizedCategoria as TransactionCategory,
         createdAt: new Date().toISOString(),
+        provisonUtilizadas: form.usaProvisao ? selectedProvisions : [],
       };
       saveTransaction(transaction);
     }
@@ -102,6 +154,7 @@ export default function Transactions() {
     setShowForm(false);
     setEditingId(null);
     setForm(emptyTransaction);
+    setSelectedProvisions([]);
   };
 
   const handleCreateCulto = (nome: string, data: string, tipo: Culto['tipo']) => {
@@ -163,7 +216,12 @@ export default function Transactions() {
       memberId: t.memberId || '',
       estornada: t.estornada,
       competencia: t.competencia || t.data.substring(0, 7),
+      ehProvisao: t.ehProvisao || false,
+      usaProvisao: t.usaProvisao || false,
+      provisonUtilizadas: t.provisonUtilizadas || [],
+      afetaCaixa: t.afetaCaixa !== false,
     });
+    setSelectedProvisions(t.provisonUtilizadas || []);
     setEditingId(t.id);
     setShowForm(true);
   };
@@ -525,6 +583,168 @@ export default function Transactions() {
                   </select>
                 </div>
               </div>
+
+              {/* Controles de Provisão - Apenas para Saídas */}
+              {form.tipo === 'SAIDA' && (
+                <div className="border-t border-slate-200 pt-4 mt-4 space-y-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                    <h4 className="text-sm font-semibold text-amber-900 mb-3">Controle de Provisões</h4>
+                    
+                    {/* Checkbox: Este lançamento é uma provisão */}
+                    <div className="mb-3">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={form.ehProvisao || false}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setForm({...form, ehProvisao: checked, usaProvisao: checked ? false : form.usaProvisao});
+                            if (checked) {
+                              setSelectedProvisions([]);
+                            }
+                          }}
+                          className="mt-1 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-amber-900">Este lançamento cria uma nova provisão</span>
+                          <p className="text-xs text-amber-700 mt-1">
+                            O valor será reservado como provisão para uso futuro. Não afeta o fluxo de caixa até ser utilizado.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Checkbox: Este lançamento usa provisão existente */}
+                    <div className="mb-3">
+                      <label className="flex items-start gap-2 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          checked={form.usaProvisao || false}
+                          onChange={e => {
+                            const checked = e.target.checked;
+                            setForm({...form, usaProvisao: checked, ehProvisao: checked ? false : form.ehProvisao});
+                            if (!checked) {
+                              setSelectedProvisions([]);
+                            }
+                          }}
+                          disabled={form.ehProvisao}
+                          className="mt-1 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500 disabled:opacity-50"
+                        />
+                        <div className="flex-1">
+                          <span className="text-sm font-medium text-amber-900">Este lançamento utiliza provisão existente</span>
+                          <p className="text-xs text-amber-700 mt-1">
+                            Selecione uma ou mais provisões disponíveis para cobrir este lançamento.
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+
+                    {/* Seleção de Provisões Disponíveis */}
+                    {form.usaProvisao && (
+                      <div className="mt-4 bg-white border border-amber-200 rounded-lg p-3">
+                        <h5 className="text-sm font-semibold text-amber-900 mb-2">Provisões Disponíveis</h5>
+                        {provisions.filter(p => 
+                          p.status === 'PENDENTE' && 
+                          (p.saldoDisponivel || p.valor) > 0 &&
+                          (form.congregacao === '' || p.congregacao === form.congregacao)
+                        ).length === 0 ? (
+                          <p className="text-xs text-amber-700 italic">Nenhuma provisão disponível para esta congregação</p>
+                        ) : (
+                          <div className="space-y-2 max-h-48 overflow-y-auto">
+                            {provisions.filter(p => 
+                              p.status === 'PENDENTE' && 
+                              (p.saldoDisponivel || p.valor) > 0 &&
+                              (form.congregacao === '' || p.congregacao === form.congregacao)
+                            ).map(p => {
+                              const saldo = p.saldoDisponivel || p.valor;
+                              const isSelected = selectedProvisions.some(sp => sp.provisionId === p.id);
+                              const selectedValue = selectedProvisions.find(sp => sp.provisionId === p.id)?.valorUtilizado || 0;
+                              
+                              return (
+                                <div key={p.id} className={`border rounded-lg p-2 ${isSelected ? 'border-amber-400 bg-amber-50' : 'border-slate-200'}`}>
+                                  <div className="flex items-start gap-2">
+                                    <input 
+                                      type="checkbox"
+                                      checked={isSelected}
+                                      onChange={e => {
+                                        if (e.target.checked) {
+                                          setSelectedProvisions([...selectedProvisions, {
+                                            provisionId: p.id,
+                                            valorUtilizado: Math.min(saldo, form.valor - selectedProvisions.reduce((sum, sp) => sum + sp.valorUtilizado, 0))
+                                          }]);
+                                        } else {
+                                          setSelectedProvisions(selectedProvisions.filter(sp => sp.provisionId !== p.id));
+                                        }
+                                      }}
+                                      className="mt-1 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                                    />
+                                    <div className="flex-1">
+                                      <p className="text-sm font-medium text-slate-800">{p.descricao}</p>
+                                      <p className="text-xs text-slate-600">
+                                        Saldo: <span className="font-semibold text-amber-700">R$ {saldo.toFixed(2)}</span>
+                                      </p>
+                                      {isSelected && (
+                                        <div className="mt-2">
+                                          <label className="text-xs text-slate-600 block mb-1">Valor a utilizar:</label>
+                                          <input 
+                                            type="number"
+                                            step="0.01"
+                                            min="0.01"
+                                            max={saldo}
+                                            value={selectedValue}
+                                            onChange={e => {
+                                              const newValue = parseFloat(e.target.value) || 0;
+                                              setSelectedProvisions(selectedProvisions.map(sp => 
+                                                sp.provisionId === p.id ? {...sp, valorUtilizado: Math.min(newValue, saldo)} : sp
+                                              ));
+                                            }}
+                                            className="w-full px-2 py-1 text-sm border border-slate-300 rounded focus:border-amber-400 focus:ring-1 focus:ring-amber-400 outline-none"
+                                          />
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        
+                        {selectedProvisions.length > 0 && (
+                          <div className="mt-3 pt-3 border-t border-amber-200">
+                            <p className="text-sm text-amber-900">
+                              Total selecionado: <span className="font-bold">R$ {selectedProvisions.reduce((sum, sp) => sum + sp.valorUtilizado, 0).toFixed(2)}</span>
+                            </p>
+                            <p className="text-xs text-amber-700 mt-1">
+                              Valor do lançamento: R$ {form.valor.toFixed(2)} | Diferença: R$ {(form.valor - selectedProvisions.reduce((sum, sp) => sum + sp.valorUtilizado, 0)).toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Checkbox: Afetar fluxo de caixa */}
+                    {form.usaProvisao && selectedProvisions.length > 0 && (
+                      <div className="mt-3">
+                        <label className="flex items-start gap-2 cursor-pointer">
+                          <input 
+                            type="checkbox" 
+                            checked={form.afetaCaixa !== false}
+                            onChange={e => setForm({...form, afetaCaixa: e.target.checked})}
+                            className="mt-1 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium text-amber-900">Afetar fluxo de caixa</span>
+                            <p className="text-xs text-amber-700 mt-1">
+                              Se marcado, o valor utilizado das provisões será descontado do saldo do caixa. Se desmarcado, o lançamento não afeta o fluxo de caixa.
+                            </p>
+                          </div>
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 flex gap-3">

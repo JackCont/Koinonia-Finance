@@ -27,6 +27,8 @@ export interface Provision {
   congregacao: string;
   observacoes?: string;
   createdAt: string;
+  valorUtilizado?: number; // Valor já utilizado desta provisão
+  saldoDisponivel?: number; // Saldo disponível (valor - valorUtilizado)
 }
 
 export type UserRole = 'MASTER' | 'ADMIN' | 'TESOURARIA' | 'CONSELHO' | 'CONTADOR';
@@ -131,6 +133,10 @@ export interface Transaction {
   estornoMotivo?: string;
   createdAt: string;
   competencia?: string; // Formato: 'YYYY-MM' - mês de referência contábil
+  ehProvisao?: boolean; // Se este lançamento cria uma nova provisão
+  usaProvisao?: boolean; // Se este lançamento usa provisão existente
+  provisonUtilizadas?: Array<{provisionId: string, valorUtilizado: number}>; // Provisões utilizadas
+  afetaCaixa?: boolean; // Se deve afetar o fluxo de caixa (padrão: true para lançamentos normais)
 }
 
 export interface Commitment {

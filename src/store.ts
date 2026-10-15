@@ -416,6 +416,27 @@ export function deleteProvision(id: string): void {
   addAuditLog('PROVISAO', `Provisão ${id} removida`);
 }
 
+export function updateProvisionUsage(provisionId: string, valorUtilizado: number): void {
+  const provisions = getProvisions();
+  const idx = provisions.findIndex(p => p.id === provisionId);
+  if (idx >= 0) {
+    const provision = provisions[idx];
+    const currentUtilizado = provision.valorUtilizado || 0;
+    provision.valorUtilizado = currentUtilizado + valorUtilizado;
+    provision.saldoDisponivel = provision.valor - provision.valorUtilizado;
+    
+    // Se o saldo zerou, marcar como utilizada
+    if (provision.saldoDisponivel <= 0) {
+      provision.status = 'UTILIZADA';
+      provision.saldoDisponivel = 0;
+    }
+    
+    provisions[idx] = provision;
+    saveToStorage(STORAGE_KEYS.PROVISIONS, provisions);
+    addAuditLog('PROVISAO', `Provisão ${provisionId} teve R$ ${valorUtilizado.toFixed(2)} utilizado`);
+  }
+}
+
 // ============ AUDIT LOG ============
 export function getAuditLog(): AuditLog[] {
   return getFromStorage<AuditLog[]>(STORAGE_KEYS.AUDIT_LOG, []);
