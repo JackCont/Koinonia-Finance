@@ -14,7 +14,58 @@ Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido c
 
 ## 🆕 ATUALIZAÇÕES RECENTES (Janeiro 2026)
 
-### 1. Correção Crítica: Sincronização de Estado das Provisões ✅
+### 1. Debug Completo do Sistema de Provisões 🔍
+**Data:** 31/01/2026
+
+**Status:** Em diagnóstico
+
+**Logs de Debug Adicionados:**
+
+Para diagnosticar o problema persistente das provisões não aparecendo, foram adicionados logs detalhados no console do navegador:
+
+**1.1. Logs em Transactions.tsx (Criação da Provisão):**
+```javascript
+🔵 Criando provisão automaticamente...
+🟢 Nova provisão: { id, data, valor, ... }
+🟡 Provisão salva. Recarregando lista...
+🟣 Provisões atuais: [ ... ]
+```
+
+**1.2. Logs em store.ts - saveProvision():**
+```javascript
+💾 saveProvision chamado com: { ... }
+📋 Provisões existentes antes de salvar: [ ... ]
+➕ Adicionando nova provisão
+💿 Salvando no localStorage...
+✅ Provisão salva com sucesso!
+🔍 Verificação - Provisões após salvar: [ ... ]
+```
+
+**1.3. Logs em store.ts - getProvisions():**
+```javascript
+📖 getProvisions retornou: [ ... ]
+```
+
+**Como Usar os Logs:**
+1. Abra o console do navegador (F12)
+2. Crie uma provisão via checkbox
+3. Observe os logs no console
+4. Navegue para "Provisões"
+5. Verifique se os logs mostram a provisão sendo carregada
+
+**Arquivos Modificados:**
+- `src/pages/Transactions.tsx` - Logs na criação da provisão
+- `src/store.ts` - Logs nas funções saveProvision() e getProvisions()
+- `DEBUG_PROVISOES.md` - Guia completo de debug
+
+**Próximos Passos:**
+- Executar o guia de debug (DEBUG_PROVISOES.md)
+- Coletar logs do console
+- Identificar exatamente onde está a falha no fluxo
+
+---
+
+### 2. Correção Crítica: Sincronização de Estado das Provisões ✅
 **Data:** 31/01/2026
 
 **Problema Identificado:**

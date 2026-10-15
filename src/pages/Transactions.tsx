@@ -101,8 +101,12 @@ export default function Transactions() {
     
     // Se é uma saída e está marcada como provisão, criar a provisão automaticamente
     if (form.tipo === 'SAIDA' && form.ehProvisao && !editingId) {
-      const provisionData: any = {
+      console.log('🔵 Criando provisão automaticamente...');
+      console.log('Form data:', form);
+      
+      const newProvision: Provision = {
         id: uuidv4(),
+        data: form.data,
         competencia: form.competencia || form.data.substring(0, 7),
         competenciaDestino: form.competencia || form.data.substring(0, 7),
         valor: form.valor,
@@ -115,10 +119,16 @@ export default function Transactions() {
         valorUtilizado: 0,
         saldoDisponivel: form.valor,
       };
-      provisionData['da' + 'ta'] = form.data;
-      const newProvision = provisionData as Provision;
+      
+      console.log('🟢 Nova provisão:', newProvision);
+      
       saveProvision(newProvision);
-      setProvisions(getProvisions());
+      
+      console.log('🟡 Provisão salva. Recarregando lista...');
+      const updatedProvisions = getProvisions();
+      console.log('🟣 Provisões atuais:', updatedProvisions);
+      
+      setProvisions(updatedProvisions);
       alert('✅ Provisão criada com sucesso! Acesse o módulo de Provisões para visualizar.');
     }
     
