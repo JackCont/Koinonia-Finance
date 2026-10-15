@@ -24,8 +24,9 @@ import FixedValuesConfig from './pages/FixedValuesConfig';
 import Provisions from './pages/Provisions';
 import ProvisionsReport from './pages/ProvisionsReport';
 import Churches from './pages/Churches';
+import MasterDashboard from './pages/MasterDashboard';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport' | 'churches';
+type Page = 'dashboard' | 'masterdashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport' | 'churches';
 
 interface NavItem {
   id: Page;
