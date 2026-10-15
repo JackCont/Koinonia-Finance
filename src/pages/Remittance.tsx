@@ -19,6 +19,32 @@ export default function Remittance() {
   const monthEnd = endOfMonth(monthStart);
   const remittancePercentual = getActiveRemittancePercentual(format(monthStart, 'yyyy-MM-dd'));
 
+  // Filtrar apenas congregações ativas no período selecionado
+  const activeCongregationsInPeriod = useMemo(() => {
+    return congregations.filter(cong => {
+      // Se não está ativa, não incluir
+      if (!cong.ativo) return false;
+      
+      // Verificar se estava ativa durante o período selecionado
+      const periodStart = monthStart;
+      const periodEnd = monthEnd;
+      
+      // Se tem data de início, verificar se começou antes ou durante o período
+      if (cong.dataInicio) {
+        const startDate = parseISO(cong.dataInicio);
+        if (startDate > periodEnd) return false; // Começou depois do período
+      }
+      
+      // Se tem data de fim, verificar se terminou depois ou durante o período
+      if (cong.dataFim) {
+        const endDate = parseISO(cong.dataFim);
+        if (endDate < periodStart) return false; // Terminou antes do período
+      }
+      
+      return true;
+    });
+  }, [congregations, monthStart, monthEnd]);
+
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   const monthlyData = useMemo(() => {
@@ -41,7 +67,7 @@ export default function Remittance() {
     const missoesFixo = fixedValues.find(fv => fv.id === 'missoes')?.valor || 850;
     const jubiladosFixo = fixedValues.find(fv => fv.id === 'jubilados')?.valor || 750;
 
-    const allData = congregations.map(cong => {
+    const allData = activeCongregationsInPeriod.map(cong => {
       const congTx = selectedCong === 'all' 
         ? monthTx.filter(t => t.congregacao === cong.nome || !t.congregacao)
         : monthTx.filter(t => t.congregacao === cong.nome);
@@ -84,7 +110,7 @@ export default function Remittance() {
     return allData.filter(row => 
       row.receitaBruta > 0 || row.totalDespesas > 0 || row.pastor > 0
     );
-  }, [transactions, selectedMonth, selectedCong, congregations, remittancePercentual, monthStart, monthEnd]);
+  }, [transactions, selectedMonth, selectedCong, activeCongregationsInPeriod, remittancePercentual, monthStart, monthEnd]);
 
   const totals = useMemo(() => {
     return monthlyData.reduce((acc, row) => ({
@@ -114,13 +140,13 @@ export default function Remittance() {
     return monthlyData
       .filter(row => row.pastor > 0)
       .map(row => {
-        const cong = congregations.find(c => c.nome === row.congregacao);
+        const cong = activeCongregationsInPeriod.find(c => c.nome === row.congregacao);
         return {
           ...row,
           pastorNome: cong?.pastor || ''
         };
       });
-  }, [monthlyData, congregations]);
+  }, [monthlyData, activeCongregationsInPeriod]);
 
   const handlePrint = () => window.print();
 
@@ -164,7 +190,7 @@ export default function Remittance() {
         <select value={selectedCong} onChange={e => setSelectedCong(e.target.value)}
           className="px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
           <option value="all">Todas as Congregações</option>
-          {congregations.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+          {activeCongregationsInPeriod.map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
         </select>
         <div className="flex items-center gap-2 bg-slate-100 rounded-xl p-1">
           <button 
