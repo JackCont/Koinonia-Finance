@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ArrowLeftRight, TrendingUp, FileText, 
   Settings, Download, Upload, Menu, X, Church, ClipboardList,
-  Shield, LogOut, FileSpreadsheet, Palette, Calendar, DollarSign, Target
+  Shield, LogOut, FileSpreadsheet, Palette, Calendar, DollarSign, Target, Building2
 } from 'lucide-react';
 import { getCurrentUser, logout, getTheme } from './store';
 import { User } from './types';
@@ -23,8 +23,9 @@ import Congregations from './pages/Congregations';
 import FixedValuesConfig from './pages/FixedValuesConfig';
 import Provisions from './pages/Provisions';
 import ProvisionsReport from './pages/ProvisionsReport';
+import Churches from './pages/Churches';
 
-type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport';
+type Page = 'dashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport' | 'churches';
 
 interface NavItem {
   id: Page;
@@ -35,6 +36,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Painel', icon: <LayoutDashboard size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
+  { id: 'churches', label: 'Igrejas', icon: <Building2 size={20} />, roles: ['MASTER', 'ADMIN'] },
   { id: 'members', label: 'Membros', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'congregations', label: 'Congregações', icon: <Church size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
@@ -107,6 +109,7 @@ export default function App() {
       case 'fixedvalues': return <FixedValuesConfig />;
       case 'provisions': return <Provisions />;
       case 'provisionsreport': return <ProvisionsReport />;
+      case 'churches': return <Churches />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };

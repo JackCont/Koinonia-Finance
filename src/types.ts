@@ -81,6 +81,15 @@ export interface RemittanceRule {
   createdAt: string;
 }
 
+export interface LocalPastor {
+  id: string;
+  nome: string;
+  dataInicio: string; // yyyy-MM-dd
+  dataFim?: string;    // yyyy-MM-dd - vazio = ativo
+  ativo: boolean;
+  observacoes?: string;
+}
+
 export interface Church {
   id: string;
   nome: string;
@@ -95,6 +104,7 @@ export interface Church {
   setor?: string;
   ativo: boolean;
   createdAt: string;
+  localPastors?: LocalPastor[]; // Pastores locais com vigência
 }
 
 export interface Congregation {
