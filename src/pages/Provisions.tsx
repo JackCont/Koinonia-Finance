@@ -16,9 +16,33 @@ export default function Provisions() {
   const congregations = getCongregations();
   const config = getConfig();
 
-  // Recarregar provisões sempre que o componente é montado
+  // Recarregar provisões sempre que o componente é exibido
   useEffect(() => {
-    setProvisions(getProvisions());
+    const loadProvisions = () => {
+      setProvisions(getProvisions());
+    };
+    
+    // Carregar imediatamente
+    loadProvisions();
+    
+    // Escutar mudanças no localStorage
+    const handleStorageChange = () => {
+      loadProvisions();
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Também recarregar quando o componente ganha foco
+    const handleFocus = () => {
+      loadProvisions();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   const today = new Date();

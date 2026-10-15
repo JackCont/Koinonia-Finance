@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor, Provision } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor, Provision, FixedValue } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -349,13 +349,6 @@ export function deleteCommitment(id: string): void {
 }
 
 // ============ FIXED VALUES ============
-export interface FixedValue {
-  id: string;
-  categoria: string;
-  valor: number;
-  descricao: string;
-}
-
 export function getFixedValues(): FixedValue[] {
   const defaults: FixedValue[] = [
     { id: 'jubilados', categoria: 'DESPESA_JUBILADOS', valor: 750.00, descricao: 'Jubilados' },

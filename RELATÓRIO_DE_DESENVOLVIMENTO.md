@@ -14,7 +14,76 @@ Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido c
 
 ## 🆕 ATUALIZAÇÕES RECENTES (Janeiro 2026)
 
-### 1. Correção Crítica: Provisões e Melhorias de Design ✅
+### 1. Correção Crítica: Sincronização de Estado das Provisões ✅
+**Data:** 31/01/2026
+
+**Problema Identificado:**
+- ❌ Provisões criadas via checkbox no módulo de Lançamentos não apareciam no módulo de Provisões
+- ❌ Provisões não apareciam no Relatório de Provisões
+- ❌ Causa raiz: Componentes React não recarregavam dados do localStorage após navegação
+
+**Correções Implementadas:**
+
+**1.1. Sincronização Automática de Estado**
+- ✅ Adicionados event listeners para `storage` e `focus` em `Provisions.tsx`
+- ✅ Adicionados event listeners para `storage` e `focus` em `ProvisionsReport.tsx`
+- ✅ Componentes agora recarregam automaticamente quando:
+  - localStorage é modificado (outra aba/componente altera dados)
+  - Janela ganha foco (usuário volta para o aplicativo)
+  - Componente é montado (navegação para a página)
+
+**1.2. Correção de Interface Duplicada**
+- ✅ Removida definição duplicada de `FixedValue` em `store.ts`
+- ✅ Importada interface correta de `types.ts` com campos `dataInicio` e `dataFim`
+- ✅ Função `getFixedValueByCategory()` agora considera vigência temporal corretamente
+
+**1.3. Código Corrigido:**
+```typescript
+// Provisions.tsx e ProvisionsReport.tsx
+useEffect(() => {
+  const loadProvisions = () => {
+    setProvisions(getProvisions());
+  };
+  
+  // Carregar imediatamente
+  loadProvisions();
+  
+  // Escutar mudanças no localStorage
+  const handleStorageChange = () => {
+    loadProvisions();
+  };
+  
+  window.addEventListener('storage', handleStorageChange);
+  
+  // Também recarregar quando o componente ganha foco
+  const handleFocus = () => {
+    loadProvisions();
+  };
+  
+  window.addEventListener('focus', handleFocus);
+  
+  return () => {
+    window.removeEventListener('storage', handleStorageChange);
+    window.removeEventListener('focus', handleFocus);
+  };
+}, []);
+```
+
+**Arquivos Modificados:**
+- `src/pages/Provisions.tsx` - Adicionados event listeners para sincronização automática
+- `src/pages/ProvisionsReport.tsx` - Adicionados event listeners para sincronização automática
+- `src/store.ts` - Removida interface duplicada, importada de types.ts
+- `src/types.ts` - Interface FixedValue com campos de vigência (já existia)
+
+**Resultado:**
+- ✅ Provisões criadas via checkbox agora aparecem imediatamente no módulo de Provisões
+- ✅ Provisões aparecem corretamente no Relatório de Provisões
+- ✅ Sincronização em tempo real entre todos os módulos
+- ✅ Interface FixedValue unificada e consistente
+
+---
+
+### 2. Correção Crítica: Provisões e Melhorias de Design ✅
 **Data:** 30/01/2026
 
 **Correções Críticas:**
