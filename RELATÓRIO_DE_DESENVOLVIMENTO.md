@@ -14,7 +14,61 @@ Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido c
 
 ## 🆕 ATUALIZAÇÕES RECENTES (Janeiro 2026)
 
-### 1. Debug Completo do Sistema de Provisões 🔍
+### 1. Lançamentos Diretos no Módulo de Cultos ✅
+**Data:** 31/01/2026
+
+**Nova Funcionalidade:**
+- ✅ Criar lançamentos financeiros diretamente dentro do módulo de Cultos
+- ✅ Lançamentos vinculados automaticamente ao culto selecionado
+- ✅ Data e competência pré-preenchidas automaticamente
+- ✅ Sincronização automática com o módulo de Lançamentos
+- ✅ Cálculo de totais (entradas, saídas, saldo) em tempo real
+- ✅ Visualização consolidada de todos os lançamentos do culto
+- ✅ Possibilidade de excluir lançamentos diretamente do culto
+
+**Benefícios:**
+- 🚀 **Ganho de tempo operacional:** Não precisa navegar entre módulos
+- 🎯 **Redução de erros:** Data, competência e cultoId preenchidos automaticamente
+- 📊 **Visão consolidada:** Veja todos os lançamentos do culto em um só lugar
+- 💰 **Cálculos automáticos:** Totais de entradas, saídas e saldo atualizados em tempo real
+
+**Interface:**
+- Botão "+ Novo Lançamento" no modal de detalhes do culto
+- Modal de lançamento simplificado com dados do culto pré-preenchidos
+- Cards de totais (Entradas, Saídas, Saldo) acima da lista de lançamentos
+- Lista de lançamentos com ícones de exclusão
+- Informações do culto (data, competência) em destaque
+
+**Arquivos Modificados:**
+- `src/pages/CultsManagement.tsx` - Adicionada funcionalidade completa de lançamentos
+- `LANCAMENTOS_EM_CULTOS.md` - Guia completo de uso (novo arquivo)
+
+**Como Usar:**
+1. Vá em "Cultos" e clique no ícone de olho (👁️) para visualizar um culto
+2. Clique em "+ Novo Lançamento"
+3. Preencha os dados do lançamento (tipo, categoria, descrição, valor)
+4. Clique em "Salvar Lançamento"
+5. O lançamento aparece automaticamente na lista e no módulo de Lançamentos
+
+**Exemplo de Uso:**
+```
+Culto: "Domingo Manhã - 31/01/2026"
+
+Lançamentos criados:
+✅ Dízimo João Silva: +R$ 500,00
+✅ Dízimo Maria Souza: +R$ 300,00
+✅ Oferta Culto: +R$ 200,00
+❌ Conta de Luz: -R$ 200,00
+
+Totais:
+- Entradas: R$ 1.000,00
+- Saídas: R$ 200,00
+- Saldo: R$ 800,00
+```
+
+---
+
+### 2. Debug Completo do Sistema de Provisões 🔍
 **Data:** 31/01/2026
 
 **Status:** Em diagnóstico
