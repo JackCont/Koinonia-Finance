@@ -13,37 +13,27 @@ export default function Provisions() {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCompetenciaOrigem, setFilterCompetenciaOrigem] = useState('');
   const [filterCompetenciaDestino, setFilterCompetenciaDestino] = useState('');
+  const [reloadKey, setReloadKey] = useState(0); // Força reload quando muda
   const congregations = getCongregations();
   const config = getConfig();
 
-  // Recarregar provisões sempre que o componente é exibido
+  console.log('📊 Provisions.tsx montado/atualizado');
+  console.log('📊 Provisões carregadas:', provisions);
+  console.log('📊 Quantidade:', provisions.length);
+
+  // Recarregar provisões SEMPRE que o componente é exibido
   useEffect(() => {
-    const loadProvisions = () => {
-      setProvisions(getProvisions());
-    };
-    
-    // Carregar imediatamente
-    loadProvisions();
-    
-    // Escutar mudanças no localStorage
-    const handleStorageChange = () => {
-      loadProvisions();
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    
-    // Também recarregar quando o componente ganha foco
-    const handleFocus = () => {
-      loadProvisions();
-    };
-    
-    window.addEventListener('focus', handleFocus);
-    
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, []);
+    console.log('🔄 useEffect executado - recarregando provisões...');
+    const freshProvisions = getProvisions();
+    console.log('🔄 Provisões frescas do localStorage:', freshProvisions);
+    setProvisions(freshProvisions);
+  }, [reloadKey]); // Recarrega quando reloadKey muda
+
+  // Função para forçar reload manual
+  const forceReload = () => {
+    console.log('🔁 Forçando reload manual...');
+    setReloadKey(prev => prev + 1);
+  };
 
   const today = new Date();
   const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
