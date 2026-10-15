@@ -372,9 +372,20 @@ export function saveFixedValue(fixedValue: FixedValue): void {
   saveToStorage(STORAGE_KEYS.FIXED_VALUES, fixedValues);
 }
 
-export function getFixedValueByCategory(categoria: string): number {
+export function getFixedValueByCategory(categoria: string, dataReferencia?: string): number {
   const fixedValues = getFixedValues();
-  const found = fixedValues.find(f => f.categoria === categoria);
+  const currentDate = dataReferencia || new Date().toISOString().split('T')[0];
+  
+  const found = fixedValues.find(f => {
+    if (f.categoria !== categoria) return false;
+    
+    // Verificar vigência
+    if (f.dataInicio && f.dataInicio > currentDate) return false;
+    if (f.dataFim && f.dataFim < currentDate) return false;
+    
+    return true;
+  });
+  
   return found?.valor || 0;
 }
 

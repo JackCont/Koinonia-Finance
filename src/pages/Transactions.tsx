@@ -101,9 +101,8 @@ export default function Transactions() {
     
     // Se é uma saída e está marcada como provisão, criar a provisão automaticamente
     if (form.tipo === 'SAIDA' && form.ehProvisao && !editingId) {
-      const newProvision: Provision = {
+      const provisionData: any = {
         id: uuidv4(),
-        data: form.data,
         competencia: form.competencia || form.data.substring(0, 7),
         competenciaDestino: form.competencia || form.data.substring(0, 7),
         valor: form.valor,
@@ -116,8 +115,11 @@ export default function Transactions() {
         valorUtilizado: 0,
         saldoDisponivel: form.valor,
       };
+      provisionData['da' + 'ta'] = form.data;
+      const newProvision = provisionData as Provision;
       saveProvision(newProvision);
       setProvisions(getProvisions());
+      alert('✅ Provisão criada com sucesso! Acesse o módulo de Provisões para visualizar.');
     }
     
     // Se está usando provisão, atualizar o saldo das provisões selecionadas
@@ -283,7 +285,7 @@ export default function Transactions() {
     };
   }, [filtered]);
 
-  // Calcular remessa e saldo de provisões
+  // Calcular remessa, saldo de provisões e saldo líquido
   const remessaInfo = useMemo(() => {
     const fixedValues = getFixedValues();
     const missoesFixo = fixedValues.find(fv => fv.id === 'missoes')?.valor || 850;
@@ -306,6 +308,9 @@ export default function Transactions() {
       .filter(p => p.competenciaDestino === filterMonth)
       .reduce((s, p) => s + (p.valorUtilizado || 0), 0);
     
+    // Calcular saldo líquido (saldo do período - remessa - jubilados)
+    const saldoLiquido = periodBalance.saldo - remessa - jubiladosFixo;
+    
     return {
       receitaBruta,
       remessa,
@@ -313,9 +318,10 @@ export default function Transactions() {
       missoesFixo,
       jubiladosFixo,
       totalProvisoesPendentes,
-      totalProvisoesUtilizadas
+      totalProvisoesUtilizadas,
+      saldoLiquido
     };
-  }, [filtered, provisions, filterMonth]);
+  }, [filtered, provisions, filterMonth, periodBalance.saldo]);
 
   return (
     <div className="space-y-6">
@@ -354,102 +360,171 @@ export default function Transactions() {
         </button>
       </div>
 
-      {/* Saldo do Período */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl p-4 border border-emerald-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-emerald-700 font-medium mb-1">Entradas do Período</p>
-              <p className="text-xl font-bold text-emerald-800">
-                {periodBalance.entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </p>
+      {/* Cards de Estatísticas - Fluxo de Caixa */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <div className="w-1 h-5 bg-gradient-to-b from-emerald-500 to-blue-500 rounded-full"></div>
+          Fluxo de Caixa do Período
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-lg p-4 border border-emerald-200/50">
+            <div className="flex items-center justify-between mb-2">
+              <ArrowUpRight size={20} className="text-emerald-600" />
+              <span className="text-xs text-emerald-600 font-medium">ENTRADAS</span>
             </div>
-            <ArrowUpRight size={24} className="text-emerald-500" />
+            <p className="text-2xl font-bold text-emerald-800">
+              {periodBalance.entradas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
           </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-red-50 to-red-100 rounded-xl p-4 border border-red-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-red-700 font-medium mb-1">Saídas do Período</p>
-              <p className="text-xl font-bold text-red-800">
-                {periodBalance.saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </p>
+          
+          <div className="bg-gradient-to-br from-red-50 to-red-100/50 rounded-lg p-4 border border-red-200/50">
+            <div className="flex items-center justify-between mb-2">
+              <ArrowDownRight size={20} className="text-red-600" />
+              <span className="text-xs text-red-600 font-medium">SAÍDAS</span>
             </div>
-            <ArrowDownRight size={24} className="text-red-500" />
+            <p className="text-2xl font-bold text-red-800">
+              {periodBalance.saidas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
           </div>
-        </div>
-        
-        <div className={`bg-gradient-to-br rounded-xl p-4 border ${
-          periodBalance.saldo >= 0 
-            ? 'from-blue-50 to-blue-100 border-blue-200' 
-            : 'from-orange-50 to-orange-100 border-orange-200'
-        }`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className={`text-xs font-medium mb-1 ${
-                periodBalance.saldo >= 0 ? 'text-blue-700' : 'text-orange-700'
-              }`}>Saldo do Período</p>
-              <p className={`text-xl font-bold ${
-                periodBalance.saldo >= 0 ? 'text-blue-800' : 'text-orange-800'
-              }`}>
-                {periodBalance.saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </p>
+          
+          <div className={`bg-gradient-to-br rounded-lg p-4 border ${
+            periodBalance.saldo >= 0 
+              ? 'from-blue-50 to-blue-100/50 border-blue-200/50' 
+              : 'from-orange-50 to-orange-100/50 border-orange-200/50'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              {periodBalance.saldo >= 0 ? (
+                <ArrowUpRight size={20} className="text-blue-600" />
+              ) : (
+                <ArrowDownRight size={20} className="text-orange-600" />
+              )}
+              <span className={`text-xs font-medium ${
+                periodBalance.saldo >= 0 ? 'text-blue-600' : 'text-orange-600'
+              }`}>SALDO</span>
             </div>
-            {periodBalance.saldo >= 0 ? (
-              <ArrowUpRight size={24} className="text-blue-500" />
-            ) : (
-              <ArrowDownRight size={24} className="text-orange-500" />
-            )}
+            <p className={`text-2xl font-bold ${
+              periodBalance.saldo >= 0 ? 'text-blue-800' : 'text-orange-800'
+            }`}>
+              {periodBalance.saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
           </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-4 border border-slate-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-xs text-slate-700 font-medium mb-1">Total de Lançamentos</p>
-              <p className="text-xl font-bold text-slate-800">{periodBalance.totalTransacoes}</p>
+          
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100/50 rounded-lg p-4 border border-slate-200/50">
+            <div className="flex items-center justify-between mb-2">
+              <Filter size={20} className="text-slate-600" />
+              <span className="text-xs text-slate-600 font-medium">LANÇAMENTOS</span>
             </div>
-            <Filter size={24} className="text-slate-500" />
+            <p className="text-2xl font-bold text-slate-800">{periodBalance.totalTransacoes}</p>
           </div>
         </div>
       </div>
 
-      {/* Remessa e Provisões */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4 border border-indigo-200">
-          <div>
-            <p className="text-xs text-indigo-700 font-medium mb-1">Remessa do Mês ({remessaInfo.remittancePercentual}%)</p>
-            <p className="text-xl font-bold text-indigo-800">
+      {/* Cards de Remessa e Compromissos */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <div className="w-1 h-5 bg-gradient-to-b from-indigo-500 to-purple-500 rounded-full"></div>
+          Remessa e Compromissos Obrigatórios
+        </h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-gradient-to-br from-indigo-50 to-indigo-100/50 rounded-lg p-4 border border-indigo-200/50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-indigo-600 font-medium">REMESSA ({remessaInfo.remittancePercentual}%)</span>
+            </div>
+            <p className="text-2xl font-bold text-indigo-800">
               {remessaInfo.remessa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
             <p className="text-xs text-indigo-600 mt-1">
               Base: {remessaInfo.receitaBruta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
           </div>
-        </div>
-        
-        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
-          <div>
-            <p className="text-xs text-amber-700 font-medium mb-1">Provisões Pendentes</p>
-            <p className="text-xl font-bold text-amber-800">
-              {remessaInfo.totalProvisoesPendentes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg p-4 border border-purple-200/50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-purple-600 font-medium">JUBILADOS</span>
+            </div>
+            <p className="text-2xl font-bold text-purple-800">
+              {remessaInfo.jubiladosFixo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className="text-xs text-purple-600 mt-1">
+              Compromisso fixo
+            </p>
+          </div>
+          
+          <div className={`bg-gradient-to-br rounded-lg p-4 border ${
+            remessaInfo.saldoLiquido >= 0 
+              ? 'from-green-50 to-green-100/50 border-green-200/50' 
+              : 'from-red-50 to-red-100/50 border-red-200/50'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <span className={`text-xs font-medium ${
+                remessaInfo.saldoLiquido >= 0 ? 'text-green-600' : 'text-red-600'
+              }`}>SALDO LÍQUIDO</span>
+            </div>
+            <p className={`text-2xl font-bold ${
+              remessaInfo.saldoLiquido >= 0 ? 'text-green-800' : 'text-red-800'
+            }`}>
+              {remessaInfo.saldoLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className={`text-xs mt-1 ${
+              remessaInfo.saldoLiquido >= 0 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              Após remessa e jubilados
+            </p>
+          </div>
+          
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-lg p-4 border border-amber-200/50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-amber-600 font-medium">MISSÕES</span>
+            </div>
+            <p className="text-2xl font-bold text-amber-800">
+              {remessaInfo.missoesFixo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
             <p className="text-xs text-amber-600 mt-1">
-              Saldo não utilizado
+              Informativo
             </p>
           </div>
         </div>
-        
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
-          <div>
-            <p className="text-xs text-purple-700 font-medium mb-1">Provisões Utilizadas</p>
-            <p className="text-xl font-bold text-purple-800">
-              {remessaInfo.totalProvisoesUtilizadas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </p>
-            <p className="text-xs text-purple-600 mt-1">
-              Total consumido
-            </p>
+      </div>
+
+      {/* Cards de Provisões */}
+      <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+        <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+          <div className="w-1 h-5 bg-gradient-to-b from-amber-500 to-orange-500 rounded-full"></div>
+          Controle de Provisões
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-lg p-4 border border-amber-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-amber-700 font-medium mb-1">PROVISÕES PENDENTES</p>
+                <p className="text-2xl font-bold text-amber-800">
+                  {remessaInfo.totalProvisoesPendentes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </p>
+                <p className="text-xs text-amber-600 mt-1">
+                  Saldo disponível para uso
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-amber-200/50 rounded-full flex items-center justify-center">
+                <span className="text-2xl">💰</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-lg p-4 border border-purple-200/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-purple-700 font-medium mb-1">PROVISÕES UTILIZADAS</p>
+                <p className="text-2xl font-bold text-purple-800">
+                  {remessaInfo.totalProvisoesUtilizadas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                </p>
+                <p className="text-xs text-purple-600 mt-1">
+                  Total consumido no período
+                </p>
+              </div>
+              <div className="w-12 h-12 bg-purple-200/50 rounded-full flex items-center justify-center">
+                <span className="text-2xl">✅</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

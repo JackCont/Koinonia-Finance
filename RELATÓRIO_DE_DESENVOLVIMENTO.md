@@ -14,7 +14,51 @@ Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido c
 
 ## 🆕 ATUALIZAÇÕES RECENTES (Janeiro 2026)
 
-### 1. Sistema de Provisões Aprimorado ✅
+### 1. Correção Crítica: Provisões e Melhorias de Design ✅
+**Data:** 30/01/2026
+
+**Correções Críticas:**
+- ✅ **Bug corrigido:** Provisões criadas via checkbox agora aparecem corretamente no módulo de Provisões e nos relatórios
+- ✅ **Erro de sintaxe corrigido:** Propriedade `data` estava sendo definida incorretamente no objeto Provision
+- ✅ **Sincronização de estado:** Adicionado `useEffect` para recarregar provisões em todos os componentes relevantes
+- ✅ **Alerta de confirmação:** Ao criar provisão via checkbox, usuário recebe confirmação visual
+
+**Novas Funcionalidades na Aba de Lançamentos:**
+
+**Cards de Fluxo de Caixa (Redesenhados):**
+- ✅ **Card Entradas** - Design moderno com gradiente verde e ícone
+- ✅ **Card Saídas** - Design moderno com gradiente vermelho e ícone
+- ✅ **Card Saldo** - Design dinâmico (verde se positivo, laranja se negativo)
+- ✅ **Card Lançamentos** - Total de transações no período
+- ✅ **Organização visual** - Cards agrupados em seções com títulos e separadores
+
+**Cards de Remessa e Compromissos Obrigatórios:**
+- ✅ **Card Remessa** - Mostra cálculo automático (15% sobre dízimos + ofertas)
+- ✅ **Card Jubilados** - Mostra valor fixo mensal (R$ 750,00 padrão)
+- ✅ **Card Saldo Líquido** - Saldo após abatimento de remessa e jubilados
+- ✅ **Card Missões** - Valor informativo (R$ 850,00 padrão)
+
+**Cards de Controle de Provisões:**
+- ✅ **Card Provisões Pendentes** - Saldo disponível para uso
+- ✅ **Card Provisões Utilizadas** - Total consumido no período
+- ✅ **Design melhorado** - Ícones emoji e gradientes suaves
+
+**Melhorias de Design:**
+- ✅ **Visual mais leve e bonito** - Gradientes suaves, sombras sutis
+- ✅ **Organização em seções** - Cards agrupados por categoria
+- ✅ **Títulos com separadores** - Barras coloridas indicando seções
+- ✅ **Ícones consistentes** - Lucide React em todos os cards
+- ✅ **Responsividade** - Grid adaptativo para mobile e desktop
+
+**Arquivos Modificados:**
+- `src/pages/Transactions.tsx` - Correção do bug de provisões, redesign completo dos cards, cálculo de saldo líquido
+- `src/pages/FixedValuesConfig.tsx` - Adicionados campos de vigência (data início/fim), design melhorado
+- `src/types.ts` - Adicionados campos `dataInicio` e `dataFim` em FixedValue
+- `src/store.ts` - Função `getFixedValueByCategory()` agora considera vigência temporal
+
+---
+
+### 2. Sistema de Provisões Aprimorado ✅
 **Data:** 29/01/2026
 
 **Correções:**

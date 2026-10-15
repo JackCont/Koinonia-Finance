@@ -56,6 +56,8 @@ export interface FixedValue {
   categoria: string;
   valor: number;
   descricao: string;
+  dataInicio?: string; // yyyy-MM-dd - quando o valor fixo começou a vigorar
+  dataFim?: string;    // yyyy-MM-dd - quando o valor fixo deixou de vigorar (vazio = vigente)
 }
 
 export interface User {
