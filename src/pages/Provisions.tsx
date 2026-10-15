@@ -38,24 +38,21 @@ export default function Provisions() {
   const today = new Date();
   const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   
-  const createEmptyProvision = (): Provision => {
-    const prov: any = {
-      id: '',
-      competencia: format(today, 'yyyy-MM'),
-      competenciaDestino: format(nextMonth, 'yyyy-MM'),
-      valor: 0,
-      descricao: '',
-      categoriaDestino: '',
-      status: 'PENDENTE',
-      congregacao: '',
-      observacoes: '',
-      createdAt: '',
-    };
-    prov['da' + 'ta'] = format(today, 'yyyy-MM-dd');
-    return prov as Provision;
+  const emptyProvision: Provision = {
+    id: '',
+    data: format(today, 'yyyy-MM-dd'),
+    competencia: format(today, 'yyyy-MM'),
+    competenciaDestino: format(nextMonth, 'yyyy-MM'),
+    valor: 0,
+    descricao: '',
+    categoriaDestino: '',
+    status: 'PENDENTE',
+    congregacao: '',
+    observacoes: '',
+    createdAt: '',
+    valorUtilizado: 0,
+    saldoDisponivel: 0,
   };
-  
-  const emptyProvision = createEmptyProvision();
 
   const [form, setForm] = useState(emptyProvision);
 
@@ -66,7 +63,15 @@ export default function Provisions() {
       const matchOrigem = !filterCompetenciaOrigem || p.competencia === filterCompetenciaOrigem;
       const matchDestino = !filterCompetenciaDestino || p.competenciaDestino === filterCompetenciaDestino;
       return matchSearch && matchStatus && matchOrigem && matchDestino;
-    }).sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime());
+    }).sort((a, b) => {
+      // Verificação de segurança para campos data
+      if (!a.data || !b.data) return 0;
+      try {
+        return new Date(b.data).getTime() - new Date(a.data).getTime();
+      } catch {
+        return 0;
+      }
+    });
   }, [provisions, search, filterStatus, filterCompetenciaOrigem, filterCompetenciaDestino]);
 
   const handleSave = () => {
@@ -75,17 +80,30 @@ export default function Provisions() {
       return;
     }
 
+    // Garantir que o campo data está definido
+    const provisionData = form.data || format(new Date(), 'yyyy-MM-dd');
+
     const provision: Provision = {
       ...form,
+      data: provisionData,
       id: editing?.id || uuidv4(),
       createdAt: editing?.createdAt || new Date().toISOString(),
+      valorUtilizado: form.valorUtilizado || 0,
+      saldoDisponivel: form.saldoDisponivel !== undefined ? form.saldoDisponivel : form.valor,
     };
 
+    console.log('💾 Salvando provisão:', provision);
     saveProvision(provision);
-    setProvisions(getProvisions());
+    
+    const updatedProvisions = getProvisions();
+    console.log('✅ Provisões após salvar:', updatedProvisions);
+    
+    setProvisions(updatedProvisions);
     setShowForm(false);
     setEditing(null);
     setForm(emptyProvision);
+    
+    alert('✅ Provisão salva com sucesso!');
   };
 
   const handleEdit = (p: Provision) => {

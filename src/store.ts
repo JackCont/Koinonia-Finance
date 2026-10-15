@@ -1,4 +1,4 @@
-import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor, Provision, FixedValue } from './types';
+import { Member, Transaction, Commitment, AuditLog, AppConfig, BackupData, CategoryConfig, User, RemittanceRule, Congregation, AppTheme, Culto, Pastor, Provision, FixedValue, Church } from './types';
 import { v4 as uuidv4 } from 'uuid';
 
 const STORAGE_KEYS = {
@@ -14,6 +14,7 @@ const STORAGE_KEYS = {
   FIXED_VALUES: 'iead_fixed_values',
   PASTORS: 'iead_pastors',
   PROVISIONS: 'iead_provisions',
+  CHURCHES: 'iead_churches',
 };
 
 function generateIntegrityKey(input: string): string {
@@ -528,9 +529,36 @@ export function deleteRemittanceRule(id: string): void {
   saveConfig(config);
 }
 
+// ============ CHURCHES ============
+export function getChurches(): Church[] {
+  return getFromStorage<Church[]>(STORAGE_KEYS.CHURCHES, []);
+}
+
+export function saveChurch(church: Church): void {
+  const churches = getChurches();
+  const idx = churches.findIndex(c => c.id === church.id);
+  if (idx >= 0) churches[idx] = church;
+  else churches.push(church);
+  saveToStorage(STORAGE_KEYS.CHURCHES, churches);
+  addAuditLog('IGREJA', `Igreja ${church.nome} salva`);
+}
+
+export function deleteChurch(id: string): void {
+  saveToStorage(STORAGE_KEYS.CHURCHES, getChurches().filter(c => c.id !== id));
+  addAuditLog('IGREJA', `Igreja ${id} removida`);
+}
+
+export function getActiveChurches(): Church[] {
+  return getChurches().filter(c => c.ativo);
+}
+
 // ============ CONGREGATIONS ============
 export function getCongregations(): Congregation[] {
   return getConfig().congregacoes || [];
+}
+
+export function getActiveCongregations(): Congregation[] {
+  return getCongregations().filter(c => c.ativo);
 }
 
 export function saveCongregation(cong: Congregation): void {

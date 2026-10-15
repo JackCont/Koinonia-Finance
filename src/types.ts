@@ -81,8 +81,25 @@ export interface RemittanceRule {
   createdAt: string;
 }
 
+export interface Church {
+  id: string;
+  nome: string;
+  cnpj?: string;
+  endereco?: string;
+  telefone?: string;
+  email?: string;
+  pastorPresidente?: string;
+  tesoureiro?: string;
+  regiao?: string;
+  cidade?: string;
+  setor?: string;
+  ativo: boolean;
+  createdAt: string;
+}
+
 export interface Congregation {
   id: string;
+  churchId?: string; // Vínculo com a igreja (opcional por enquanto)
   nome: string;
   cidade: string;
   setor: string;
