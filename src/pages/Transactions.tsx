@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Search, X, ArrowUpRight, ArrowDownRight, RotateCcw, Filter, Edit2, Calendar } from 'lucide-react';
-import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName, getCultos, saveCulto, getProvisions, saveProvision, updateProvisionUsage } from '../store';
+import { getTransactions, saveTransaction, deleteTransaction, estornarTransaction, getMembers, getConfig, getCongregations, getCurrentUser, normalizeCategoryName, getCultos, saveCulto, getProvisions, saveProvision, updateProvisionUsage, getActiveRemittancePercentual, getFixedValues } from '../store';
 import { Transaction, TransactionType, TransactionCategory, Culto, Provision } from '../types';
 import { format, parseISO } from 'date-fns';
 
@@ -283,6 +283,40 @@ export default function Transactions() {
     };
   }, [filtered]);
 
+  // Calcular remessa e saldo de provisões
+  const remessaInfo = useMemo(() => {
+    const fixedValues = getFixedValues();
+    const missoesFixo = fixedValues.find(fv => fv.id === 'missoes')?.valor || 850;
+    const jubiladosFixo = fixedValues.find(fv => fv.id === 'jubilados')?.valor || 750;
+    
+    const dizimos = filtered.filter(t => t.tipo === 'ENTRADA' && t.categoria === 'DIZIMO').reduce((s, t) => s + t.valor, 0);
+    const ofertas = filtered.filter(t => t.tipo === 'ENTRADA' && t.categoria === 'OFERTA').reduce((s, t) => s + t.valor, 0);
+    const receitaBruta = dizimos + ofertas;
+    
+    const remittancePercentual = getActiveRemittancePercentual(filterMonth + '-01');
+    const remessa = receitaBruta * remittancePercentual / 100;
+    
+    // Calcular saldo de provisões não utilizadas
+    const totalProvisoesPendentes = provisions
+      .filter(p => p.status === 'PENDENTE' && p.competenciaDestino === filterMonth)
+      .reduce((s, p) => s + (p.saldoDisponivel || p.valor), 0);
+    
+    // Calcular provisões estouradas (utilizadas além do valor)
+    const totalProvisoesUtilizadas = provisions
+      .filter(p => p.competenciaDestino === filterMonth)
+      .reduce((s, p) => s + (p.valorUtilizado || 0), 0);
+    
+    return {
+      receitaBruta,
+      remessa,
+      remittancePercentual,
+      missoesFixo,
+      jubiladosFixo,
+      totalProvisoesPendentes,
+      totalProvisoesUtilizadas
+    };
+  }, [filtered, provisions, filterMonth]);
+
   return (
     <div className="space-y-6">
       {/* Filters */}
@@ -377,6 +411,45 @@ export default function Transactions() {
               <p className="text-xl font-bold text-slate-800">{periodBalance.totalTransacoes}</p>
             </div>
             <Filter size={24} className="text-slate-500" />
+          </div>
+        </div>
+      </div>
+
+      {/* Remessa e Provisões */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-xl p-4 border border-indigo-200">
+          <div>
+            <p className="text-xs text-indigo-700 font-medium mb-1">Remessa do Mês ({remessaInfo.remittancePercentual}%)</p>
+            <p className="text-xl font-bold text-indigo-800">
+              {remessaInfo.remessa.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className="text-xs text-indigo-600 mt-1">
+              Base: {remessaInfo.receitaBruta.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-4 border border-amber-200">
+          <div>
+            <p className="text-xs text-amber-700 font-medium mb-1">Provisões Pendentes</p>
+            <p className="text-xl font-bold text-amber-800">
+              {remessaInfo.totalProvisoesPendentes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className="text-xs text-amber-600 mt-1">
+              Saldo não utilizado
+            </p>
+          </div>
+        </div>
+        
+        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200">
+          <div>
+            <p className="text-xs text-purple-700 font-medium mb-1">Provisões Utilizadas</p>
+            <p className="text-xl font-bold text-purple-800">
+              {remessaInfo.totalProvisoesUtilizadas.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+            <p className="text-xs text-purple-600 mt-1">
+              Total consumido
+            </p>
           </div>
         </div>
       </div>

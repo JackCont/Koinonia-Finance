@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { Plus, Search, Edit2, Trash2, X, FileText, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { getProvisions, saveProvision, deleteProvision, getCongregations, getConfig } from '../store';
@@ -15,6 +15,11 @@ export default function Provisions() {
   const [filterCompetenciaDestino, setFilterCompetenciaDestino] = useState('');
   const congregations = getCongregations();
   const config = getConfig();
+
+  // Recarregar provisões sempre que o componente é montado
+  useEffect(() => {
+    setProvisions(getProvisions());
+  }, []);
 
   const today = new Date();
   const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);

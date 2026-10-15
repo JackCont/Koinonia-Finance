@@ -1,12 +1,17 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { getProvisions, getConfig } from '../store';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FileText, Download, Printer } from 'lucide-react';
 
 export default function ProvisionsReport() {
-  const provisions = getProvisions();
+  const [provisions, setProvisions] = useState(getProvisions());
   const config = getConfig();
+
+  // Recarregar provisões sempre que o componente é montado
+  useEffect(() => {
+    setProvisions(getProvisions());
+  }, []);
 
   const formatCurrency = (v: number) => v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
