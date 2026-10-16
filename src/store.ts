@@ -404,35 +404,21 @@ export function deletePastor(id: string): void {
 
 // ============ PROVISIONS ============
 export function getProvisions(): Provision[] {
-  const provisions = getFromStorage<Provision[]>(STORAGE_KEYS.PROVISIONS, []);
-  console.log('📖 getProvisions retornou:', provisions);
-  return provisions;
+  return getFromStorage<Provision[]>(STORAGE_KEYS.PROVISIONS, []);
 }
 
 export function saveProvision(provision: Provision): void {
-  console.log('💾 saveProvision chamado com:', provision);
-  
   const provisions = getProvisions();
-  console.log('📋 Provisões existentes antes de salvar:', provisions);
-  
   const idx = provisions.findIndex(p => p.id === provision.id);
+  
   if (idx >= 0) {
-    console.log('🔄 Atualizando provisão existente no índice:', idx);
     provisions[idx] = provision;
   } else {
-    console.log('➕ Adicionando nova provisão');
     provisions.push(provision);
   }
   
-  console.log('💿 Salvando no localStorage...');
   saveToStorage(STORAGE_KEYS.PROVISIONS, provisions);
-  
-  console.log('✅ Provisão salva com sucesso!');
   addAuditLog('PROVISAO', `Provisão de R$ ${provision.valor.toFixed(2)} salva`);
-  
-  // Verificar se foi realmente salvo
-  const savedProvisions = getProvisions();
-  console.log('🔍 Verificação - Provisões após salvar:', savedProvisions);
 }
 
 export function deleteProvision(id: string): void {

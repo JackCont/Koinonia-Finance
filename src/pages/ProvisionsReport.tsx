@@ -8,27 +8,16 @@ export default function ProvisionsReport() {
   const [provisions, setProvisions] = useState(getProvisions());
   const config = getConfig();
 
-  // Recarregar provisões sempre que o componente é exibido
+  // Recarregar provisões quando o componente é exibido ou localStorage muda
   useEffect(() => {
-    const loadProvisions = () => {
-      setProvisions(getProvisions());
-    };
+    const loadProvisions = () => setProvisions(getProvisions());
     
-    // Carregar imediatamente
     loadProvisions();
     
-    // Escutar mudanças no localStorage
-    const handleStorageChange = () => {
-      loadProvisions();
-    };
+    const handleStorageChange = () => loadProvisions();
+    const handleFocus = () => loadProvisions();
     
     window.addEventListener('storage', handleStorageChange);
-    
-    // Também recarregar quando o componente ganha foco
-    const handleFocus = () => {
-      loadProvisions();
-    };
-    
     window.addEventListener('focus', handleFocus);
     
     return () => {

@@ -74,10 +74,6 @@ export default function Transactions() {
   }, [transactions, search, filterType, filterCategory, filterMonth]);
 
   const handleSave = () => {
-    console.log('🔍 handleSave chamado');
-    console.log('📋 Form completo:', JSON.stringify(form, null, 2));
-    console.log('📋 editingId:', editingId);
-    
     // Descrição é obrigatória exceto para Dízimos e Ofertas
     const isDizimoOuOferta = form.categoria === 'DIZIMO' || form.categoria === 'OFERTA';
     if ((!form.descricao.trim() && !isDizimoOuOferta) || form.valor <= 0) {
@@ -103,26 +99,8 @@ export default function Transactions() {
     // Normalizar categoria antes de salvar
     const normalizedCategoria = normalizeCategoryName(form.categoria);
     
-    console.log('🔍 Verificando condições para criar provisão:');
-    console.log('  - form.tipo === "SAIDA":', form.tipo === 'SAIDA', '(valor:', form.tipo, ')');
-    console.log('  - form.ehProvisao:', form.ehProvisao);
-    console.log('  - !editingId:', !editingId, '(valor:', editingId, ')');
-    console.log('  - Condição completa:', form.tipo === 'SAIDA' && form.ehProvisao && !editingId);
-    
     // Se é uma saída e está marcada como provisão, criar a provisão automaticamente
     if (form.tipo === 'SAIDA' && form.ehProvisao && !editingId) {
-      console.log('✅ Condição atendida! Criando provisão automaticamente...');
-      console.log('✅ Dados do formulário:', {
-        tipo: form.tipo,
-        ehProvisao: form.ehProvisao,
-        editingId: editingId,
-        valor: form.valor,
-        descricao: form.descricao,
-        data: form.data,
-        competencia: form.competencia
-      });
-      
-      // Criar objeto Provision diretamente
       const newProvision: Provision = {
         id: uuidv4(),
         data: form.data,
@@ -139,26 +117,9 @@ export default function Transactions() {
         saldoDisponivel: form.valor,
       };
       
-      console.log('🟢 Nova provisão criada:', newProvision);
-      console.log('🟢 Campo data:', newProvision.data);
-      console.log('🟢 Todas as chaves:', Object.keys(newProvision));
-      
-      console.log('💾 Chamando saveProvision...');
       saveProvision(newProvision);
-      
-      console.log('🟡 Provisão salva. Recarregando lista...');
-      const updatedProvisions = getProvisions();
-      console.log('🟣 Provisões atuais:', updatedProvisions);
-      console.log('🟣 Quantidade de provisões:', updatedProvisions.length);
-      
-      setProvisions(updatedProvisions);
+      setProvisions(getProvisions());
       alert('✅ Provisão criada com sucesso! Acesse o módulo de Provisões para visualizar.');
-    } else {
-      console.log('❌ Condição NÃO atendida! Provisão NÃO será criada.');
-      console.log('❌ Motivos possíveis:');
-      console.log('   - Tipo não é SAIDA:', form.tipo);
-      console.log('   - ehProvisao não está marcado:', form.ehProvisao);
-      console.log('   - Está editando um lançamento:', editingId);
     }
     
     // Se está usando provisão, atualizar o saldo das provisões selecionadas
@@ -785,8 +746,6 @@ export default function Transactions() {
                           checked={form.ehProvisao || false}
                           onChange={e => {
                             const checked = e.target.checked;
-                            console.log('🔵 Checkbox "ehProvisao" alterado para:', checked);
-                            console.log('🔵 Estado atual do form:', form);
                             setForm({...form, ehProvisao: checked, usaProvisao: checked ? false : form.usaProvisao});
                             if (checked) {
                               setSelectedProvisions([]);

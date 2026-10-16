@@ -17,21 +17,14 @@ export default function Provisions() {
   const congregations = getCongregations();
   const config = getConfig();
 
-  console.log('📊 Provisions.tsx montado/atualizado');
-  console.log('📊 Provisões carregadas:', provisions);
-  console.log('📊 Quantidade:', provisions.length);
-
-  // Recarregar provisões SEMPRE que o componente é exibido
+  // Recarregar provisões quando reloadKey muda
   useEffect(() => {
-    console.log('🔄 useEffect executado - recarregando provisões...');
     const freshProvisions = getProvisions();
-    console.log('🔄 Provisões frescas do localStorage:', freshProvisions);
     setProvisions(freshProvisions);
-  }, [reloadKey]); // Recarrega quando reloadKey muda
+  }, [reloadKey]);
 
   // Função para forçar reload manual
   const forceReload = () => {
-    console.log('🔁 Forçando reload manual...');
     setReloadKey(prev => prev + 1);
   };
 
@@ -92,13 +85,8 @@ export default function Provisions() {
       saldoDisponivel: form.saldoDisponivel !== undefined ? form.saldoDisponivel : form.valor,
     };
 
-    console.log('💾 Salvando provisão:', provision);
     saveProvision(provision);
-    
-    const updatedProvisions = getProvisions();
-    console.log('✅ Provisões após salvar:', updatedProvisions);
-    
-    setProvisions(updatedProvisions);
+    setProvisions(getProvisions());
     setShowForm(false);
     setEditing(null);
     setForm(emptyProvision);
