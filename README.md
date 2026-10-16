@@ -1,6 +1,6 @@
 # Tesouraria IEAD - Sistema de Gestão Financeira Eclesiástica
 
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Status:** ✅ Produção  
 **Data:** Janeiro 2026
 
@@ -95,6 +95,9 @@ Os dados são salvos no navegador (localStorage).
 
 ## 🎯 Funcionalidades Principais
 
+- ✅ **Painel Geral do MASTER** - Visão consolidada de todas as igrejas
+- ✅ **Gestão de Membros em Lote** - Importação via CSV e salvamento em massa
+- ✅ **Lançamentos em Lote por Culto** - Criação múltipla de lançamentos vinculados
 - ✅ Gestão de Membros e Dizimistas
 - ✅ Controle de Lançamentos (Dízimos, Ofertas, Despesas)
 - ✅ Sistema de Provisões (Reserva de Emergência)

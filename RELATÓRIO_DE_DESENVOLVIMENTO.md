@@ -1,20 +1,102 @@
-# RELATÓRIO DE DESENVOLVIMENTO - Tesouraria Eclesiástica v1.1
+# RELATÓRIO DE DESENVOLVIMENTO - Tesouraria Eclesiástica v1.2
 
 **Data:** Janeiro 2026  
-**Versão:** 1.1  
+**Versão:** 1.2  
 **Status:** ✅ Produção
 
 ---
 
 ## 📋 SUMÁRIO EXECUTIVO
 
-Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido com React, TypeScript e Vite. Inclui controle de dízimos, ofertas, despesas, remessas, provisões, congregações, pastores, cultos e relatórios detalhados.
+Sistema completo de gestão financeira para igrejas evangélicas, desenvolvido com React, TypeScript e Vite. Inclui controle de dízimos, ofertas, despesas, remessas, provisões, congregações, pastores, cultos e relatórios detalhados. Versão 1.2 adiciona Painel Geral do MASTER, gestão de membros em lote e lançamentos em lote por culto.
 
 ---
 
 ## 🆕 ATUALIZAÇÕES RECENTES (Janeiro 2026)
 
-### 1. Lançamentos Diretos no Módulo de Cultos ✅
+### 1. Versão 1.2 - Funcionalidades Completas ✅
+**Data:** 31/01/2026
+
+**Novas Funcionalidades Implementadas:**
+
+**1.1. Painel Geral do MASTER** ✅
+- ✅ Dashboard consolidado com visão de todas as igrejas
+- ✅ Estatísticas gerais (igrejas, congregações, membros, saldo)
+- ✅ Lista de igrejas com informações detalhadas
+- ✅ Fluxo de caixa consolidado de todas as igrejas
+- ✅ Acesso exclusivo para perfil MASTER
+
+**1.2. Gestão de Membros em Lote** ✅
+- ✅ Importação de membros via CSV
+- ✅ Download de modelo CSV
+- ✅ Pré-visualização antes de salvar
+- ✅ Validação de dados
+- ✅ Salvamento em lote de múltiplos membros
+- ✅ Estatísticas de membros (total, ativos, congregações)
+
+**1.3. Lançamentos em Lote por Culto** ✅
+- ✅ Seleção de culto específico
+- ✅ Criação de múltiplos lançamentos de uma vez
+- ✅ Resumo do lote (entradas, saídas, saldo)
+- ✅ Vinculação automática ao culto selecionado
+- ✅ Data e competência automáticas do culto
+- ✅ Validação de valores
+- ✅ Salvamento em lote
+
+**Arquivos Criados:**
+- `src/pages/MasterDashboard.tsx` - Painel geral do MASTER
+- `src/pages/BatchMembers.tsx` - Gestão de membros em lote
+- `src/pages/BatchTransactions.tsx` - Lançamentos em lote por culto
+
+**Arquivos Modificados:**
+- `src/App.tsx` - Adicionados novos menus e rotas
+
+**Build:**
+```
+✓ 2234 modules transformed
+✓ dist/index.html                   3.21 kB
+✓ dist/assets/index-BrPWiH3y.css   61.59 kB
+✓ dist/assets/index-A5FzoFEC.js   477.68 kB
+✓ built in 7.48s
+```
+
+---
+
+### 2. Sistema de Permissões Granulares (Tipos Definidos) ✅
+**Data:** 31/01/2026
+
+**Hierarquia de Perfis:**
+- **MASTER:** Acesso total a todas as funcionalidades
+- **ADMIN:** Acesso amplo dentro de uma igreja específica
+- **TESOURARIA:** Lançamentos, membros, relatórios
+- **CONFERENTE:** Operacional dentro de uma congregação
+- **USER:** Apenas lançamentos e relatórios básicos
+- **CONSELHO:** Visualização de relatórios e fluxo de caixa
+- **CONTADOR:** Relatórios, remessas e provisões
+
+**Tipos Definidos:**
+```typescript
+export type UserRole = 'MASTER' | 'ADMIN' | 'TESOURARIA' | 'CONFERENTE' | 'USER' | 'CONSELHO' | 'CONTADOR';
+
+export type SystemModule = 
+  | 'dashboard' | 'members' | 'congregations' | 'transactions' | 'cults'
+  | 'commitments' | 'provisions' | 'provisionsreport' | 'remittance'
+  | 'cashflow' | 'reports' | 'fixedvalues' | 'importexport'
+  | 'admin' | 'settings' | 'customization' | 'churches';
+
+export type ModuleAction = 'view' | 'create' | 'edit' | 'delete' | 'export' | 'reverse';
+
+export interface UserPermissions {
+  modules: SystemModule[];
+  actions: Partial<Record<SystemModule, ModuleAction[]>>;
+}
+```
+
+**Status:** ⚠️ Tipos definidos mas interface de permissões ainda não implementada na UI
+
+---
+
+### 3. Lançamentos Diretos no Módulo de Cultos ✅
 **Data:** 31/01/2026
 
 **Nova Funcionalidade:**
@@ -848,6 +930,6 @@ Todos os direitos reservados
 
 ---
 
-**Versão:** 1.1  
-**Última Atualização:** 29/01/2026  
+**Versão:** 1.2  
+**Última Atualização:** 31/01/2026  
 **Status:** ✅ Produção

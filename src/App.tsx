@@ -25,8 +25,10 @@ import Provisions from './pages/Provisions';
 import ProvisionsReport from './pages/ProvisionsReport';
 import Churches from './pages/Churches';
 import MasterDashboard from './pages/MasterDashboard';
+import BatchMembers from './pages/BatchMembers';
+import BatchTransactions from './pages/BatchTransactions';
 
-type Page = 'dashboard' | 'masterdashboard' | 'members' | 'transactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport' | 'churches';
+type Page = 'dashboard' | 'masterdashboard' | 'members' | 'batchmembers' | 'transactions' | 'batchtransactions' | 'cashflow' | 'reports' | 'settings' | 'importexport' | 'commitments' | 'admin' | 'remittance' | 'customization' | 'cults' | 'congregations' | 'fixedvalues' | 'provisions' | 'provisionsreport' | 'churches';
 
 interface NavItem {
   id: Page;
@@ -40,8 +42,10 @@ const navItems: NavItem[] = [
   { id: 'masterdashboard', label: 'Painel Master', icon: <Building2 size={20} />, roles: ['MASTER'] },
   { id: 'churches', label: 'Igrejas', icon: <Building2 size={20} />, roles: ['MASTER', 'ADMIN'] },
   { id: 'members', label: 'Membros', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'batchmembers', label: 'Membros (Lote)', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'congregations', label: 'Congregações', icon: <Church size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'transactions', label: 'Lançamentos', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
+  { id: 'batchtransactions', label: 'Lançamentos (Lote)', icon: <ArrowLeftRight size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'cults', label: 'Cultos', icon: <Calendar size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'commitments', label: 'Compromissos', icon: <ClipboardList size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'provisions', label: 'Provisões', icon: <FileText size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
@@ -113,6 +117,8 @@ export default function App() {
       case 'provisionsreport': return <ProvisionsReport />;
       case 'churches': return <Churches />;
       case 'masterdashboard': return <MasterDashboard />;
+      case 'batchmembers': return <BatchMembers />;
+      case 'batchtransactions': return <BatchTransactions />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };
