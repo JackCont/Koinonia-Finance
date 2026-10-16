@@ -53,7 +53,7 @@ def sync():
             return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
         
         # Inicializar entidade se não existir
-        if entity not in 
+        if entity not in data:
             data[entity] = {}
         
         # Processar operação
