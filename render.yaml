@@ -1,0 +1,21 @@
+services:
+  # Backend API
+  - type: web
+    name: koinonia-finance-api
+    env: python
+    region: oregon
+    plan: free
+    branch: Koinonia-Finance-v1_2
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn wsgi:app --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: PORT
+        value: 8080
+    healthCheckPath: /api/health
+    
+  # Frontend (GitHub Pages ou Vercel)
+  # Configurar separadamente na plataforma de hospedagem
+  # GitHub Pages: https://pages.github.com/
+  # Vercel: https://vercel.com/

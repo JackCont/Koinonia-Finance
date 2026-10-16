@@ -1,0 +1,418 @@
+import { useState, useMemo, useRef } from 'react';
+import { v4 as uuidv4 } from 'uuid';
+import { Plus, Search, Edit2, Trash2, X, User, Phone, Mail, MapPin, LayoutGrid, List, Camera } from 'lucide-react';
+import { getMembers, saveMember, deleteMember, getConfig, getCongregations } from '../store';
+import { Member, MemberStatus } from '../types';
+
+export default function Members() {
+  const [members, setMembers] = useState(getMembers());
+  const [search, setSearch] = useState('');
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Member | null>(null);
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [filterMinisterio, setFilterMinisterio] = useState<string>('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const config = getConfig();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Obter ministérios únicos e ordenar alfabeticamente
+  const ministerios = useMemo(() => {
+    const ministeriosSet = new Set<string>();
+    members.forEach(m => {
+      m.ministerios.forEach(min => ministeriosSet.add(min));
+    });
+    return Array.from(ministeriosSet).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }, [members]);
+
+  const filtered = useMemo(() => {
+    return members.filter(m => {
+      const matchSearch = m.nome.toLowerCase().includes(search.toLowerCase()) ||
+        m.cpf.includes(search) || m.telefone.includes(search);
+      const matchStatus = filterStatus === 'all' || m.status === filterStatus;
+      const matchMinisterio = filterMinisterio === 'all' || m.ministerios.includes(filterMinisterio);
+      return matchSearch && matchStatus && matchMinisterio;
+    }).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  }, [members, search, filterStatus, filterMinisterio]);
+
+  const emptyMember: Member = {
+    id: '', nome: '', cpf: '', email: '', telefone: '',
+    endereco: '', dataNascimento: '', dataAdmissao: '',
+    status: 'ATIVO', ministerios: [], congregacao: '', observacoes: '',
+    foto: '',
+  };
+
+  const [form, setForm] = useState<Member>(emptyMember);
+
+  const handleSave = () => {
+    if (!form.nome.trim()) { alert('Nome é obrigatório'); return; }
+    const member = { ...form, id: form.id || uuidv4() };
+    saveMember(member);
+    setMembers(getMembers());
+    setShowForm(false);
+    setEditing(null);
+    setForm(emptyMember);
+  };
+
+  const handleEdit = (m: Member) => {
+    setEditing(m);
+    setForm(m);
+    setShowForm(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm('Remover este membro?')) {
+      deleteMember(id);
+      setMembers(getMembers());
+    }
+  };
+
+  const toggleMinisterio = (min: string) => {
+    setForm(f => ({
+      ...f,
+      ministerios: f.ministerios.includes(min)
+        ? f.ministerios.filter(m => m !== min)
+        : [...f.ministerios, min]
+    }));
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm(f => ({ ...f, foto: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const statusColors: Record<MemberStatus, string> = {
+    ATIVO: 'bg-emerald-100 text-emerald-700',
+    INATIVO: 'bg-slate-100 text-slate-600',
+    TRANSFERIDO: 'bg-amber-100 text-amber-700',
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+        <div className="flex items-center gap-3 flex-1 w-full">
+          <div className="relative flex-1 max-w-md">
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Buscar por nome, CPF ou telefone..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none text-sm"
+            />
+          </div>
+          <select
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none"
+          >
+            <option value="all">Todos</option>
+            <option value="ATIVO">Ativos</option>
+            <option value="INATIVO">Inativos</option>
+            <option value="TRANSFERIDO">Transferidos</option>
+          </select>
+          <select
+            value={filterMinisterio}
+            onChange={e => setFilterMinisterio(e.target.value)}
+            className="px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none"
+          >
+            <option value="all">Todos os Ministérios</option>
+            {ministerios.map(min => (
+              <option key={min} value={min}>{min}</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-slate-100 rounded-xl p-1">
+            <button
+              onClick={() => setViewMode('cards')}
+              className={`p-2 rounded-lg transition-colors ${
+                viewMode === 'cards' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              }`}
+              title="Visualização em Cards"
+            >
+              <LayoutGrid size={18} />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-lg transition-colors ${
+                viewMode === 'list' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-600 hover:text-slate-800'
+              }`}
+              title="Visualização em Lista"
+            >
+              <List size={18} />
+            </button>
+          </div>
+          <button
+            onClick={() => { setForm(emptyMember); setEditing(null); setShowForm(true); }}
+            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm"
+          >
+            <Plus size={16} /> Novo Membro
+          </button>
+        </div>
+      </div>
+
+      {/* Members List - Cards View */}
+      {viewMode === 'cards' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          {filtered.map(m => (
+            <div key={m.id} className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3">
+                  {m.foto ? (
+                    <img src={m.foto} alt={m.nome} className="w-12 h-12 rounded-full object-cover border-2 border-indigo-200" />
+                  ) : (
+                    <div className="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center">
+                      <User size={20} className="text-indigo-600" />
+                    </div>
+                  )}
+                  <div>
+                    <h3 className="font-semibold text-slate-800">{m.nome}</h3>
+                    <p className="text-xs text-slate-400">CPF: {m.cpf || '---'}</p>
+                  </div>
+                </div>
+                <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[m.status]}`}>
+                  {m.status}
+                </span>
+              </div>
+              
+              <div className="mt-3 space-y-1.5">
+                {m.telefone && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Phone size={12} /> {m.telefone}
+                  </div>
+                )}
+                {m.email && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Mail size={12} /> {m.email}
+                  </div>
+                )}
+                {m.endereco && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <MapPin size={12} /> {m.endereco}
+                  </div>
+                )}
+              </div>
+
+              {m.ministerios.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-1">
+                  {m.ministerios.map(min => (
+                    <span key={min} className="text-xs bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded-full">
+                      {min}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-4 pt-3 border-t border-slate-100 flex gap-2">
+                <button onClick={() => handleEdit(m)} className="flex-1 flex items-center justify-center gap-1 text-xs py-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                  <Edit2 size={12} /> Editar
+                </button>
+                <button onClick={() => handleDelete(m.id)} className="flex-1 flex items-center justify-center gap-1 text-xs py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                  <Trash2 size={12} /> Remover
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Members List - List View */}
+      {viewMode === 'list' && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Foto</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Nome</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">CPF</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Telefone</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Email</th>
+                  <th className="text-left px-4 py-3 font-medium text-slate-600">Status</th>
+                  <th className="text-center px-4 py-3 font-medium text-slate-600">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filtered.map(m => (
+                  <tr key={m.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3">
+                      {m.foto ? (
+                        <img src={m.foto} alt={m.nome} className="w-10 h-10 rounded-full object-cover" />
+                      ) : (
+                        <div className="w-10 h-10 bg-indigo-100 rounded-full flex items-center justify-center">
+                          <User size={16} className="text-indigo-600" />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-slate-700">{m.nome}</td>
+                    <td className="px-4 py-3 text-slate-500">{m.cpf || '---'}</td>
+                    <td className="px-4 py-3 text-slate-500">{m.telefone || '---'}</td>
+                    <td className="px-4 py-3 text-slate-500">{m.email || '---'}</td>
+                    <td className="px-4 py-3">
+                      <span className={`text-xs px-2 py-1 rounded-full font-medium ${statusColors[m.status]}`}>
+                        {m.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-center gap-1">
+                        <button onClick={() => handleEdit(m)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors">
+                          <Edit2 size={14} />
+                        </button>
+                        <button onClick={() => handleDelete(m.id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {filtered.length === 0 && (
+        <div className="text-center py-12">
+          <User size={48} className="mx-auto text-slate-300 mb-4" />
+          <p className="text-slate-500">Nenhum membro encontrado</p>
+        </div>
+      )}
+
+      {/* Modal Form */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setShowForm(false)}>
+          <div className="bg-white rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-slate-800">{editing ? 'Editar Membro' : 'Novo Membro'}</h3>
+              <button onClick={() => setShowForm(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Photo Upload */}
+            <div className="mb-6 flex flex-col items-center">
+              <div className="relative">
+                {form.foto ? (
+                  <img src={form.foto} alt="Foto" className="w-24 h-24 rounded-full object-cover border-4 border-indigo-200" />
+                ) : (
+                  <div className="w-24 h-24 bg-indigo-100 rounded-full flex items-center justify-center border-4 border-indigo-200">
+                    <User size={40} className="text-indigo-400" />
+                  </div>
+                )}
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center hover:bg-indigo-700 transition-colors shadow-lg"
+                >
+                  <Camera size={16} />
+                </button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoUpload}
+                className="hidden"
+              />
+              <p className="text-xs text-slate-500 mt-2">Clique na câmera para adicionar foto</p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Nome *</label>
+                <input type="text" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">CPF</label>
+                  <input type="text" value={form.cpf} onChange={e => setForm({...form, cpf: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" placeholder="000.000.000-00" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Telefone</label>
+                  <input type="text" value={form.telefone} onChange={e => setForm({...form, telefone: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Email</label>
+                <input type="email" value={form.email} onChange={e => setForm({...form, email: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Endereço</label>
+                <input type="text" value={form.endereco} onChange={e => setForm({...form, endereco: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Congregação</label>
+                <select value={form.congregacao} onChange={e => setForm({...form, congregacao: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                  <option value="">-- Selecione --</option>
+                  {getCongregations().sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')).map(c => <option key={c.id} value={c.nome}>{c.nome}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Nascimento</label>
+                  <input type="date" value={form.dataNascimento} onChange={e => setForm({...form, dataNascimento: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700 mb-1 block">Admissão</label>
+                  <input type="date" value={form.dataAdmissao} onChange={e => setForm({...form, dataAdmissao: e.target.value})}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Status</label>
+                <select value={form.status} onChange={e => setForm({...form, status: e.target.value as MemberStatus})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 outline-none">
+                  <option value="ATIVO">Ativo</option>
+                  <option value="INATIVO">Inativo</option>
+                  <option value="TRANSFERIDO">Transferido</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-2 block">Ministérios</label>
+                <div className="flex flex-wrap gap-2">
+                  {config.ministerios.map(min => (
+                    <button key={min} type="button" onClick={() => toggleMinisterio(min)}
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+                        form.ministerios.includes(min)
+                          ? 'bg-indigo-100 border-indigo-300 text-indigo-700'
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-indigo-200'
+                      }`}>
+                      {min}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700 mb-1 block">Observações</label>
+                <textarea value={form.observacoes} onChange={e => setForm({...form, observacoes: e.target.value})}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 outline-none" rows={2} />
+              </div>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <button onClick={() => setShowForm(false)} className="flex-1 py-2.5 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50">
+                Cancelar
+              </button>
+              <button onClick={handleSave} className="flex-1 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700">
+                Salvar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
