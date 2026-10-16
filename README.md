@@ -2,7 +2,7 @@
 
 **Sistema Completo de Gestão Financeira Eclesiástica**
 
-Versão 1.2 | Janeiro 2026 | Status: ✅ Produção
+Versão 1.3 | Janeiro 2026 | Status: ✅ Produção - Pronto para Deploy
 
 ---
 
@@ -85,6 +85,69 @@ Acesse: http://localhost:8080
 ### Login Padrão
 - **Usuário:** admin
 - **Senha:** admin123
+
+---
+
+## 🌐 Deploy
+
+### Arquivos Essenciais ( Incluídos)
+
+✅ **requirements.txt** - Dependências Python (Flask, Flask-CORS, Gunicorn)
+✅ **server.py** - API backend com endpoints de sincronização
+✅ **Procfile** - Configuração do Gunicorn para produção
+✅ **render.yaml** - Configuração automática para Render
+✅ **.env.production** - Variáveis de ambiente para produção
+✅ **.gitignore** - Ignorar arquivos desnecessários
+
+### Deploy no Render (Backend)
+
+1. Acesse [render.com](https://render.com)
+2. **New** → **Web Service**
+3. Conecte seu repositório GitHub
+4. Configure:
+   - **Name:** `koinonia-finance-api`
+   - **Environment:** `Python 3`
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** (automático via Procfile)
+5. Adicione variável de ambiente:
+   - **Key:** `PORT`
+   - **Value:** `8080`
+6. **Create Web Service**
+
+**URL do Backend:** `https://koinonia-finance-api.onrender.com`
+
+### Deploy no GitHub Pages (Frontend)
+
+1. Configure GitHub Pages no repositório
+2. Crie workflow `.github/workflows/deploy.yml`
+3. Configure secret `VITE_API_URL`
+4. Push para branch `main`
+
+**URL do Frontend:** `https://seu-usuario.github.io/koinonia-finance`
+
+### Testar Backend Localmente
+
+```bash
+# Instalar dependências
+pip install -r requirements.txt
+
+# Rodar servidor
+python server.py
+
+# Testar health check
+curl http://localhost:8080/api/health
+```
+
+**Resultado esperado:**
+```json
+{
+  "status": "ok",
+  "service": "koinonia-finance",
+  "timestamp": "2026-01-31T..."
+}
+```
+
+Veja **DEPLOY.md** e **CHECKLIST_DEPLOY.md** para instruções completas.
 
 ---
 
@@ -242,4 +305,39 @@ Todos os direitos reservados
 
 ---
 
-**Koinonia Finance** - Gestão Financeira Eclesiástica Moderna
+## 📦 Estrutura do Projeto
+
+```
+koinonia-finance/
+├── 📄 requirements.txt          # Dependências Python (Backend)
+├── 📄 server.py                 # API Flask (Backend)
+├── 📄 Procfile                  # Configuração Gunicorn
+├── 📄 render.yaml               # Configuração Render
+├── 📄 .env.production           # Variáveis de ambiente
+├── 📄 .gitignore                # Ignorar arquivos
+├── 📄 README.md                 # Este arquivo
+├── 📄 DEPLOY.md                 # Guia completo de deploy
+├── 📄 CHECKLIST_DEPLOY.md       # Checklist de deploy
+├── 📄 package.json              # Dependências Node.js
+├── 📄 vite.config.js            # Configuração Vite
+├── 📁 src/                      # Código fonte React
+│   ├── App.tsx                  # Componente principal
+│   ├── sync.ts                  # Sistema de sincronização
+│   ├── store.ts                 # Gerenciamento de dados
+│   ├── types.ts                 # Definições de tipos
+│   └── pages/                   # Páginas da aplicação
+└── 📁 dist/                     # Build de produção
+```
+
+---
+
+## 🔗 Links Úteis
+
+- **Documentação Completa:** [DEPLOY.md](./DEPLOY.md)
+- **Checklist de Deploy:** [CHECKLIST_DEPLOY.md](./CHECKLIST_DEPLOY.md)
+- **Relatório de Desenvolvimento:** [RELATÓRIO_DE_DESENVOLVIMENTO.md](./RELATÓRIO_DE_DESENVOLVIMENTO.md)
+- **Versão 1.3:** [VERSAO_1.3.md](./VERSAO_1.3.md)
+
+---
+
+**Koinonia Finance** - Gestão Financeira Eclesiástica Moderna e Conectada 🚀
