@@ -1,4 +1,4 @@
-# Tesouraria IEAD - Sistema de Gestão Financeira Eclesiástica
+# Koinonia Finance
 
 **Versão:** 1.1  
 **Status:** ✅ Produção  
