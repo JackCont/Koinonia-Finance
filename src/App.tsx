@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ArrowLeftRight, TrendingUp, FileText, 
   Settings, Download, Upload, Menu, X, Church, ClipboardList,
-  Shield, LogOut, FileSpreadsheet, Palette, Calendar, DollarSign, Target, Building2
+  Shield, LogOut, FileSpreadsheet, Palette, Calendar, DollarSign, Target, Building2,
+  Wifi, WifiOff, RefreshCw
 } from 'lucide-react';
 import { getCurrentUser, logout, getTheme } from './store';
+import { syncManager } from './sync';
 import { User } from './types';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -163,7 +165,7 @@ export default function App() {
               <Church size={24} className="text-amber-300" />
             </div>
             <div>
-              <h1 className="text-white font-bold text-lg leading-tight">Tesouraria</h1>
+              <h1 className="text-white font-bold text-lg leading-tight">Koinonia Finance</h1>
               <p className="text-indigo-300 text-xs">Gestão Eclesiástica</p>
             </div>
           </div>
@@ -222,6 +224,7 @@ export default function App() {
               </h2>
             </div>
             <div className="flex items-center gap-3">
+              <SyncIndicator />
               <span className="text-xs text-slate-500 hidden sm:block">
                 {user.nome} • <span className="text-indigo-600 font-medium">{roleLabels[user.role]}</span>
               </span>
@@ -236,6 +239,53 @@ export default function App() {
           {renderPage()}
         </div>
       </main>
+    </div>
+  );
+}
+
+// Componente de indicador de sincronização
+function SyncIndicator() {
+  const [syncStatus, setSyncStatus] = useState(syncManager.getStatus());
+  const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSyncStatus(syncManager.getStatus());
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleForceSync = async () => {
+    setSyncing(true);
+    await syncManager.forceSync();
+    setSyncStatus(syncManager.getStatus());
+    setSyncing(false);
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      {syncStatus.online ? (
+        <div className="flex items-center gap-1" title="Online">
+          <Wifi size={16} className="text-emerald-500" />
+        </div>
+      ) : (
+        <div className="flex items-center gap-1" title="Offline - dados salvos localmente">
+          <WifiOff size={16} className="text-amber-500" />
+        </div>
+      )}
+      
+      {syncStatus.pendingOperations > 0 && (
+        <button
+          onClick={handleForceSync}
+          disabled={syncing}
+          className="flex items-center gap-1 px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-lg hover:bg-amber-200 transition-colors disabled:opacity-50"
+          title={`${syncStatus.pendingOperations} operação(ões) pendente(s)`}
+        >
+          <RefreshCw size={12} className={syncing ? 'animate-spin' : ''} />
+          <span>{syncStatus.pendingOperations}</span>
+        </button>
+      )}
     </div>
   );
 }
