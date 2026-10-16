@@ -37,6 +37,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Painel', icon: <LayoutDashboard size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA', 'CONSELHO', 'CONTADOR'] },
+  { id: 'masterdashboard', label: 'Painel Master', icon: <Building2 size={20} />, roles: ['MASTER'] },
   { id: 'churches', label: 'Igrejas', icon: <Building2 size={20} />, roles: ['MASTER', 'ADMIN'] },
   { id: 'members', label: 'Membros', icon: <Users size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
   { id: 'congregations', label: 'Congregações', icon: <Church size={20} />, roles: ['MASTER', 'ADMIN', 'TESOURARIA'] },
@@ -111,6 +112,7 @@ export default function App() {
       case 'provisions': return <Provisions />;
       case 'provisionsreport': return <ProvisionsReport />;
       case 'churches': return <Churches />;
+      case 'masterdashboard': return <MasterDashboard />;
       default: return <Dashboard onNavigate={setCurrentPage} />;
     }
   };
