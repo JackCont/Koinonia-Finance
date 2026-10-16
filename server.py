@@ -24,6 +24,22 @@ def save_data(data):
     with open(DATA_FILE, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+@app.route('/', methods=['GET'])
+def root():
+    """Rota raiz para diagnóstico"""
+    return jsonify({
+        'status': 'ok',
+        'service': 'koinonia-finance-api',
+        'version': '1.3',
+        'endpoints': [
+            '/api/health',
+            '/api/sync',
+            '/api/data',
+            '/api/data/<entity>'
+        ],
+        'timestamp': datetime.now().isoformat()
+    })
+
 @app.route('/api/health', methods=['GET'])
 def health():
     """Endpoint de health check"""
