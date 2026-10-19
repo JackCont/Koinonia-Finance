@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wifi, WifiOff, CloudOff, RefreshCw, AlertCircle } from 'lucide-react';
-import { useSync } from '../sync';
+import { useSync } from '../useSync';
 
 /**
  * Componente de Indicador de Sincronização
