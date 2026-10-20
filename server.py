@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 import os
 from datetime import datetime
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='dist', static_url_path='')
 CORS(app)
 
 DATA_FILE = 'data.json'
@@ -26,11 +26,17 @@ def save_data(data):
 
 @app.route('/', methods=['GET'])
 def root():
-    """Rota raiz para diagnóstico"""
+    """Rota raiz - serve o frontend React ou informações da API"""
+    # Verifica se o frontend foi buildado
+    if os.path.exists('dist/index.html'):
+        return send_from_directory('dist', 'index.html')
+    
+    # Se não houver frontend, retorna informações da API
     return jsonify({
         'status': 'ok',
         'service': 'koinonia-finance-api',
         'version': '1.3',
+        'message': 'Frontend não encontrado. Execute: npm run build',
         'endpoints': [
             '/api/health',
             '/api/sync',
