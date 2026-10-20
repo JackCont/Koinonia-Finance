@@ -1,13 +1,169 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
 import os
 from datetime import datetime
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
-app = Flask(__name__, static_folder='dist', static_url_path='')
-CORS(app)
+app = Flask(__name__)
 
-DATA_FILE = 'data.json'
+# Configuração CORS para aceitar requisições do GitHub Pages
+CORS(app, origins=[
+    'https://jackcont.github.io',
+    'http://localhost:5173',
+    'http://localhost:3000'
+])
+
+# Configuração do banco de dados PostgreSQL (Supabase)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+
+def get_db_connection():
+    """Conecta ao banco de dados PostgreSQL"""
+    if not DATABASE_URL:
+        raise Exception("DATABASE_URL não configurado")
+    
+    conn = psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return conn
+
+def init_db():
+    """Inicializa o banco de dados com as tabelas necessárias"""
+    try:
+        conn = get_db_connection()
+        cur = conn.cursor()
+        
+        # Tabela de membros
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS members (
+                id TEXT PRIMARY KEY,
+                nome TEXT NOT NULL,
+                cpf TEXT,
+                email TEXT,
+                telefone TEXT,
+                endereco TEXT,
+                data_nascimento TEXT,
+                data_admissao TEXT,
+                status TEXT DEFAULT 'ATIVO',
+                ministerios TEXT[],
+                congregacao TEXT,
+                observacoes TEXT,
+                foto TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Tabela de transações
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS transactions (
+                id TEXT PRIMARY KEY,
+                data TEXT NOT NULL,
+                tipo TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                valor DECIMAL(10, 2) NOT NULL,
+                descricao TEXT,
+                congregacao TEXT,
+                member_id TEXT REFERENCES members(id),
+                culto_id TEXT,
+                documento TEXT,
+                estornada BOOLEAN DEFAULT FALSE,
+                estorno_motivo TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                competencia TEXT,
+                eh_provisao BOOLEAN DEFAULT FALSE,
+                usa_provisao BOOLEAN DEFAULT FALSE,
+                provison_utilizadas JSONB,
+                afeta_caixa BOOLEAN DEFAULT TRUE
+            )
+        ''')
+        
+        # Tabela de provisões
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS provisions (
+                id TEXT PRIMARY KEY,
+                data TEXT NOT NULL,
+                competencia TEXT NOT NULL,
+                competencia_destino TEXT NOT NULL,
+                valor DECIMAL(10, 2) NOT NULL,
+                descricao TEXT,
+                categoria_destino TEXT,
+                status TEXT DEFAULT 'PENDENTE',
+                congregacao TEXT,
+                observacoes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                valor_utilizado DECIMAL(10, 2) DEFAULT 0,
+                saldo_disponivel DECIMAL(10, 2)
+            )
+        ''')
+        
+        # Tabela de cultos
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS cults (
+                id TEXT PRIMARY KEY,
+                nome TEXT NOT NULL,
+                data TEXT NOT NULL,
+                tipo TEXT NOT NULL,
+                observacoes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Tabela de congregações
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS congregations (
+                id TEXT PRIMARY KEY,
+                nome TEXT NOT NULL,
+                cidade TEXT,
+                setor TEXT,
+                pastor TEXT,
+                ativo BOOLEAN DEFAULT TRUE,
+                data_inicio TEXT,
+                data_fim TEXT,
+                endereco TEXT,
+                telefone TEXT,
+                observacoes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Tabela de igrejas
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS churches (
+                id TEXT PRIMARY KEY,
+                nome TEXT NOT NULL,
+                cnpj TEXT,
+                endereco TEXT,
+                telefone TEXT,
+                email TEXT,
+                pastor_presidente TEXT,
+                tesoureiro TEXT,
+                regiao TEXT,
+                cidade TEXT,
+                setor TEXT,
+                ativo BOOLEAN DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Tabela de valores fixos
+        cur.execute('''
+            CREATE TABLE IF NOT EXISTS fixed_values (
+                id TEXT PRIMARY KEY,
+                categoria TEXT NOT NULL,
+                valor DECIMAL(10, 2) NOT NULL,
+                descricao TEXT,
+                data_inicio TEXT,
+                data_fim TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ Banco de dados inicializado com sucesso")
+    except Exception as e:
+        print(f"❌ Erro ao inicializar banco de dados: {e}")
 
 def load_data():
     """Carrega dados do arquivo JSON"""
