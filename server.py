@@ -4,10 +4,14 @@ import json
 import os
 from datetime import datetime
 
-app = Flask(__name__, static_folder='dist', static_url_path='')
+# Obter o diretório base do script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DIST_DIR = os.path.join(BASE_DIR, 'dist')
+
+app = Flask(__name__, static_folder=DIST_DIR, static_url_path='')
 CORS(app)
 
-DATA_FILE = 'data.json'
+DATA_FILE = os.path.join(BASE_DIR, 'data.json')
 
 def load_data():
     """Carrega dados do arquivo JSON"""
@@ -27,12 +31,12 @@ def save_data(data):
 @app.route('/')
 def index():
     """Serve o frontend React"""
-    return send_from_directory('dist', 'index.html')
+    return send_from_directory(DIST_DIR, 'index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
     """Serve arquivos estáticos do frontend"""
-    return send_from_directory('dist', path)
+    return send_from_directory(DIST_DIR, path)
 
 @app.route('/api/health', methods=['GET'])
 def health():
