@@ -1,9 +1,9 @@
 @echo off
 chcp 65001 >nul
-title Koinonia Finance - Servidor Local
+title Koinonia Finance
 
 echo ========================================================================
-echo   🏦 KOINONIA FINANCE - Gestão Financeira para Igrejas Evangélicas
+echo   🏦 KOINONIA FINANCE - Inicialização Automática
 echo ========================================================================
 echo.
 
@@ -31,9 +31,9 @@ if %errorlevel% neq 0 (
 echo ✅ Node.js encontrado
 echo.
 
-REM Executa o script de inicialização com auto-build
-echo 🚀 Iniciando servidor com auto-build...
+REM Executa o script de inicialização
+echo 🚀 Iniciando sistema...
 echo.
-python run.py
+python start.py
 
 pause
