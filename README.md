@@ -1,7 +1,7 @@
 # 🏦 Koinonia Finance
 
 **Gestão Financeira para Igrejas Evangélicas**  
-Versão 1.3 | Janeiro 2026
+Versão 1.3 | Outubro 2026
 
 ---
 

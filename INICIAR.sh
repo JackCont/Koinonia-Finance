@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "========================================================================"
-echo "  🏦 KOINONIA FINANCE - Sistema de Gestão Financeira Eclesiástica"
+echo "  🏦 KOINONIA FINANCE - Gestão Financeira para Igrejas Evangélicas"
 echo "========================================================================"
 echo ""
 
@@ -16,20 +16,25 @@ fi
 echo "✅ Python3 encontrado"
 echo ""
 
-# Verifica se Node.js está instalado
-if ! command -v node &> /dev/null; then
-    echo "❌ Erro: Node.js não encontrado"
-    echo "   Instale em: https://nodejs.org/"
-    exit 1
+# Verifica se a pasta dist existe
+if [ ! -f "dist/index.html" ]; then
+    echo "🏗️  Buildando frontend..."
+    npm run build
+    if [ $? -ne 0 ]; then
+        echo "❌ Erro ao buildar o frontend"
+        exit 1
+    fi
+    echo "✅ Frontend buildado com sucesso"
+    echo ""
 fi
 
-echo "✅ Node.js encontrado"
+# Inicia o servidor Python
+echo "🚀 Iniciando servidor na porta 3000..."
+echo "📡 Acesse: http://localhost:3000"
+echo "💾 Dados salvos em: data.json"
+echo "🛑 Pressione Ctrl+C para parar"
 echo ""
-
-# Executa o script Python de inicialização
-echo "🚀 Iniciando servidor local..."
-echo ""
-python3 iniciar.py
+python3 server.py
 
 # Se o script Python falhar, mostra mensagem de erro
 if [ $? -ne 0 ]; then

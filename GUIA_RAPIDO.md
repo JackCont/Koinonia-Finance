@@ -1,60 +1,54 @@
-# 🚀 Guia Rápido - Execução Local
+# 🚀 Guia Rápido - Koinonia Finance
 
-## ✅ Correções Aplicadas
-
-1. **Erro de sintaxe corrigido** no `server.py` (linha 66)
-2. **Build do frontend** concluído com sucesso
-3. **Estrutura simplificada** - apenas o essencial
+**Gestão Financeira para Igrejas Evangélicas**  
+Versão 1.3 | Outubro 2026
 
 ---
 
-## 📋 Como Iniciar (Passo a Passo)
+## ✅ Correções Aplicadas
 
-### 1. Instalar Dependências Python
+- ✅ Nome atualizado: "Koinonia Finance - Gestão Financeira para Igrejas Evangélicas"
+- ✅ Porta padrão: 3000
+- ✅ Datas corrigidas: Outubro 2026
+- ✅ Tela de login com nome correto
+- ✅ Servidor configurado para servir arquivos buildados
 
+---
+
+## 📋 Como Iniciar (3 Passos Simples)
+
+### Passo 1: Instalar Dependências Python
 ```bash
 pip install -r requirements.txt
 ```
 
-Isso instala:
-- Flask (servidor web)
-- Flask-CORS (permite requisições do frontend)
-- Gunicorn (servidor de produção)
+### Passo 2: Iniciar o Servidor
 
-### 2. Verificar se o Frontend está Buildado
-
-A pasta `dist/` deve conter:
-- `index.html`
-- `assets/index-*.css`
-- `assets/index-*.js`
-
-Se não existir, execute:
+**Windows:**
 ```bash
-npm run build
+INICIAR.bat
 ```
 
-### 3. Iniciar o Servidor
-
-**Opção A: Script automático (recomendado)**
+**Linux/Mac:**
 ```bash
-# Windows
-INICIAR.bat
-
-# Linux/Mac
 chmod +x INICIAR.sh
 ./INICIAR.sh
 ```
 
-**Opção B: Manual**
+**Manual:**
 ```bash
+# Se a pasta dist/ não existir ou estiver vazia:
+npm run build
+
+# Iniciar o servidor:
 python server.py
 ```
 
-### 4. Acessar o Aplicativo
+### Passo 3: Acessar o Aplicativo
 
-Abra o navegador e acesse:
+Abra o navegador e vá para:
 ```
-http://localhost:8080
+http://localhost:3000
 ```
 
 **Login padrão:**
@@ -68,76 +62,15 @@ http://localhost:8080
 Para acessar de outros dispositivos na mesma rede WiFi:
 
 1. Descubra o IP do seu computador:
-   - **Windows:** `ipconfig` → procure por "IPv4 Address"
+   - **Windows:** `ipconfig` → procure por "IPv4"
    - **Linux/Mac:** `ifconfig` ou `ip addr`
 
 2. Acesse de outro dispositivo:
    ```
-   http://[SEU-IP]:8080
+   http://[SEU-IP]:3000
    ```
 
-   Exemplo: `http://192.168.1.100:8080`
-
----
-
-## 🐛 Solução de Problemas
-
-### Erro: "ModuleNotFoundError: No module named 'flask'"
-
-**Solução:**
-```bash
-pip install -r requirements.txt
-```
-
-### Erro: "Address already in use" (porta 8080)
-
-**Solução:**
-```bash
-# Windows
-netstat -ano | findstr :8080
-taskkill /PID [numero] /F
-
-# Linux/Mac
-lsof -ti:8080 | xargs kill -9
-```
-
-Ou use outra porta:
-```bash
-PORT=3000 python server.py
-```
-
-### Erro: "dist/index.html not found"
-
-**Solução:**
-```bash
-npm run build
-```
-
-### Página em branco no navegador
-
-**Solução:**
-1. Abra o console do navegador (F12)
-2. Verifique se há erros
-3. Recarregue a página (Ctrl+F5)
-
----
-
-## 📁 Estrutura Mínima Necessária
-
-```
-koinonia-finance/
-├── server.py              # Servidor backend
-├── requirements.txt       # Dependências Python
-├── iniciar.py             # Script de inicialização
-├── INICIAR.bat            # Script Windows
-├── INICIAR.sh             # Script Linux/Mac
-├── dist/                  # Frontend buildado
-│   ├── index.html
-│   └── assets/
-├── src/                   # Código fonte React
-├── package.json           # Dependências Node.js
-└── data.json              # Dados locais (gerado automaticamente)
-```
+   Exemplo: `http://192.168.1.100:3000`
 
 ---
 
@@ -149,38 +82,120 @@ koinonia-finance/
 
 ---
 
-## ✅ Checklist de Funcionamento
+## 🐛 Solução de Problemas
 
-- [ ] Python 3.8+ instalado
-- [ ] Node.js 18+ instalado (apenas para build)
-- [ ] Dependências Python instaladas (`pip install -r requirements.txt`)
-- [ ] Frontend buildado (pasta `dist/` existe)
-- [ ] Servidor iniciado (`python server.py`)
-- [ ] Navegador acessa `http://localhost:8080`
-- [ ] Login funciona (admin/admin123)
+### Erro 404 - Frontend não encontrado
+
+**Sintoma:** Página mostra "⚠️ Frontend não encontrado"
+
+**Solução:**
+```bash
+npm run build
+python server.py
+```
+
+### Erro: "ModuleNotFoundError: No module named 'flask'"
+
+**Solução:**
+```bash
+pip install -r requirements.txt
+```
+
+### Erro: "Address already in use" (porta 3000)
+
+**Solução:**
+```bash
+# Windows
+netstat -ano | findstr :3000
+taskkill /PID [numero] /F
+
+# Linux/Mac
+lsof -ti:3000 | xargs kill -9
+```
+
+Ou use outra porta:
+```bash
+PORT=3001 python server.py
+```
+
+### Tela de login mostra nome errado
+
+**Solução:**
+1. Limpe o cache do navegador (Ctrl+Shift+Delete)
+2. Recarregue a página (Ctrl+F5)
+3. Ou faça um novo build:
+   ```bash
+   npm run build
+   python server.py
+   ```
 
 ---
 
-## 🎯 Funcionalidades Disponíveis
-
-Todas as funcionalidades desenvolvidas estão disponíveis:
+## 📊 Funcionalidades Disponíveis
 
 - ✅ Controle de dízimos e ofertas
 - ✅ Gestão de despesas por categoria
 - ✅ Remessa mensal (modelo oficial)
 - ✅ Fluxo de caixa (regime de caixa e competência)
-- ✅ Sistema de provisões
-- ✅ Valores fixos (Missões, Jubilados)
+- ✅ Sistema de provisões (reserva de emergência)
+- ✅ Valores fixos (Missões R$ 850, Jubilados R$ 750)
 - ✅ Cadastro de membros com fotos
 - ✅ Gestão de congregações e pastores
 - ✅ Lançamentos em lote por culto
 - ✅ Gestão de membros em lote (CSV)
 - ✅ Relatórios completos
 - ✅ Sistema de autenticação com perfis
-- ✅ Personalização de cores
+- ✅ Personalização de cores (6 temas)
+- ✅ Indicador de sincronização (online/offline)
+- ✅ Painel geral do MASTER
 
 ---
 
-**Status:** ✅ Pronto para uso local!
+## 🔐 Perfis de Acesso
 
-**Próximo passo:** Execute `pip install -r requirements.txt` e depois `python server.py`
+| Perfil | Acesso |
+|--------|--------|
+| **MASTER** | Total (igrejas, usuários, configurações) |
+| **ADMIN** | Amplo (dentro de uma igreja) |
+| **TESOURARIA** | Lançamentos, membros, relatórios |
+| **CONFERENTE** | Operacional (dentro de uma congregação) |
+| **USER** | Apenas lançamentos e relatórios básicos |
+| **CONSELHO** | Visualização de relatórios |
+| **CONTADOR** | Relatórios, remessas e provisões |
+
+---
+
+## 📁 Estrutura do Projeto
+
+```
+koinonia-finance/
+├── server.py              ✅ Servidor Flask (porta 3000)
+├── INICIAR.bat            ✅ Script Windows
+├── INICIAR.sh             ✅ Script Linux/Mac
+├── requirements.txt       ✅ Dependências Python
+├── dist/                  ✅ Frontend buildado
+│   ├── index.html
+│   └── assets/
+├── src/                   ✅ Código fonte React
+├── package.json           ✅ Dependências Node.js
+└── data.json              ✅ Dados locais (gerado automaticamente)
+```
+
+---
+
+## 📞 Suporte
+
+Se o problema persistir:
+1. Verifique se o Python está instalado: `python --version`
+2. Verifique se o Node.js está instalado: `node --version`
+3. Faça o build do frontend: `npm run build`
+4. Inicie o servidor: `python server.py`
+5. Acesse: http://localhost:3000
+
+---
+
+**Koinonia Finance** - Gestão Financeira para Igrejas Evangélicas
+
+**Versão:** 1.3  
+**Data:** Outubro 2026  
+**Status:** ✅ Pronto para uso local

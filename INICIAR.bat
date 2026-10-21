@@ -3,7 +3,7 @@ chcp 65001 >nul
 title Koinonia Finance - Servidor Local
 
 echo ========================================================================
-echo   🏦 KOINONIA FINANCE - Sistema de Gestão Financeira Eclesiástica
+echo   🏦 KOINONIA FINANCE - Gestão Financeira para Igrejas Evangélicas
 echo ========================================================================
 echo.
 
@@ -20,22 +20,26 @@ if %errorlevel% neq 0 (
 echo ✅ Python encontrado
 echo.
 
-REM Verifica se Node.js está instalado
-node --version >nul 2>&1
-if %errorlevel% neq 0 (
-    echo ❌ Erro: Node.js não encontrado
-    echo    Instale em: https://nodejs.org/
-    pause
-    exit /b 1
+REM Verifica se a pasta dist existe
+if not exist "dist\index.html" (
+    echo 🏗️  Buildando frontend...
+    call npm run build
+    if %errorlevel% neq 0 (
+        echo ❌ Erro ao buildar o frontend
+        pause
+        exit /b 1
+    )
+    echo ✅ Frontend buildado com sucesso
+    echo.
 )
 
-echo ✅ Node.js encontrado
+REM Inicia o servidor Python
+echo 🚀 Iniciando servidor na porta 3000...
+echo 📡 Acesse: http://localhost:3000
+echo 💾 Dados salvos em: data.json
+echo 🛑 Pressione Ctrl+C para parar
 echo.
-
-REM Executa o script Python de inicialização
-echo 🚀 Iniciando servidor local...
-echo.
-python iniciar.py
+python server.py
 
 REM Se o script Python falhar, mostra mensagem de erro
 if %errorlevel% neq 0 (

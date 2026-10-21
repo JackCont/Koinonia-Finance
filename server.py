@@ -6,8 +6,9 @@ from datetime import datetime
 
 # Obter o diretório base do script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DIST_DIR = os.path.join(BASE_DIR, 'dist')
 
-app = Flask(__name__, static_folder=BASE_DIR, static_url_path='')
+app = Flask(__name__, static_folder=DIST_DIR, static_url_path='')
 CORS(app)
 
 DATA_FILE = os.path.join(BASE_DIR, 'data.json')
@@ -30,17 +31,34 @@ def save_data(data):
 @app.route('/')
 def index():
     """Serve o frontend React"""
-    return send_from_directory(BASE_DIR, 'index.html')
+    # Verifica se a pasta dist existe e tem o index.html
+    if os.path.exists(os.path.join(DIST_DIR, 'index.html')):
+        return send_from_directory(DIST_DIR, 'index.html')
+    else:
+        # Se não existir, retorna mensagem de erro
+        return """
+        <html>
+        <head><title>Erro - Koinonia Finance</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 40px;">
+            <h1>⚠️ Frontend não encontrado</h1>
+            <p>A pasta <code>dist/</code> não existe ou está vazia.</p>
+            <p>Execute o comando abaixo para buildar o frontend:</p>
+            <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px;">npm run build</pre>
+            <p>Depois reinicie o servidor:</p>
+            <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px;">python server.py</pre>
+        </body>
+        </html>
+        """, 404
 
-@app.route('/src/<path:path>')
-def serve_src(path):
-    """Serve arquivos do diretório src"""
-    return send_from_directory(os.path.join(BASE_DIR, 'src'), path)
+@app.route('/assets/<path:path>')
+def serve_assets(path):
+    """Serve arquivos de assets"""
+    return send_from_directory(os.path.join(DIST_DIR, 'assets'), path)
 
 @app.route('/<path:path>')
 def static_files(path):
     """Serve arquivos estáticos do frontend"""
-    return send_from_directory(BASE_DIR, path)
+    return send_from_directory(DIST_DIR, path)
 
 @app.route('/api/health', methods=['GET'])
 def health():
@@ -140,7 +158,7 @@ def get_all_data():
         }), 500
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 3000))
     print(f"🏦 Koinonia Finance - Gestão Financeira para Igrejas Evangélicas")
     print(f"🚀 Servidor Local Iniciado")
     print(f"📡 Acessar: http://localhost:{port}")
