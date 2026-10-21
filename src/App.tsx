@@ -165,7 +165,7 @@ export default function App() {
             </div>
             <div>
               <h1 className="text-white font-bold text-lg leading-tight">Koinonia Finance</h1>
-              <p className="text-indigo-300 text-xs">Gestão Eclesiástica</p>
+              <p className="text-indigo-300 text-xs">Gestão Financeira para Igrejas Evangélicas</p>
             </div>
           </div>
         </div>

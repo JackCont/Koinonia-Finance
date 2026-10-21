@@ -1,6 +1,6 @@
 # 🏦 Koinonia Finance
 
-**Sistema de Gestão Financeira Eclesiástica**  
+**Gestão Financeira para Igrejas Evangélicas**  
 Versão 1.3 | Janeiro 2026
 
 ---

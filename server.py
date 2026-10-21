@@ -6,9 +6,8 @@ from datetime import datetime
 
 # Obter o diretório base do script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DIST_DIR = os.path.join(BASE_DIR, 'dist')
 
-app = Flask(__name__, static_folder=DIST_DIR, static_url_path='')
+app = Flask(__name__, static_folder=BASE_DIR, static_url_path='')
 CORS(app)
 
 DATA_FILE = os.path.join(BASE_DIR, 'data.json')
@@ -31,12 +30,17 @@ def save_data(data):
 @app.route('/')
 def index():
     """Serve o frontend React"""
-    return send_from_directory(DIST_DIR, 'index.html')
+    return send_from_directory(BASE_DIR, 'index.html')
+
+@app.route('/src/<path:path>')
+def serve_src(path):
+    """Serve arquivos do diretório src"""
+    return send_from_directory(os.path.join(BASE_DIR, 'src'), path)
 
 @app.route('/<path:path>')
 def static_files(path):
     """Serve arquivos estáticos do frontend"""
-    return send_from_directory(DIST_DIR, path)
+    return send_from_directory(BASE_DIR, path)
 
 @app.route('/api/health', methods=['GET'])
 def health():
@@ -137,7 +141,8 @@ def get_all_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
-    print(f"🚀 Koinonia Finance - Servidor Local")
+    print(f"🏦 Koinonia Finance - Gestão Financeira para Igrejas Evangélicas")
+    print(f"🚀 Servidor Local Iniciado")
     print(f"📡 Acessar: http://localhost:{port}")
     print(f"💾 Dados salvos em: {DATA_FILE}")
     print(f"🛑 Pressione Ctrl+C para parar")
