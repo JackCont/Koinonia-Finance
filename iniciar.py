@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Koinonia Finance - Script de Inicialização Local
-Este script prepara e inicia o servidor local para desenvolvimento e uso em rede local.
+Koinonia Finance - Inicializador Local
+Faz build do frontend se necessário e inicia o servidor
 """
 
 import subprocess
@@ -9,145 +9,71 @@ import sys
 import os
 import time
 import webbrowser
-from pathlib import Path
+import threading
 
-def print_header():
-    """Imprime o cabeçalho do script"""
-    print("=" * 70)
-    print("  🏦 KOINONIA FINANCE - Sistema de Gestão Financeira Eclesiástica")
-    print("=" * 70)
-    print()
-
-def check_python_version():
-    """Verifica se a versão do Python é compatível"""
-    if sys.version_info < (3, 8):
-        print("❌ Erro: Python 3.8 ou superior é necessário")
-        print(f"   Versão atual: {sys.version_info.major}.{sys.version_info.minor}")
-        return False
-    print(f"✅ Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
+def check_and_build():
+    """Verifica se a pasta dist existe e faz build se necessário"""
+    if not os.path.exists('dist') or not os.path.exists('dist/index.html'):
+        print("📦 Pasta dist/ não encontrada. Fazendo build do frontend...")
+        result = subprocess.run(['npm', 'run', 'build'], capture_output=True, text=True)
+        if result.returncode != 0:
+            print("❌ Erro no build:")
+            print(result.stderr)
+            return False
+        print("✅ Build concluído!")
+    else:
+        print("✅ Frontend já buildado")
     return True
 
-def check_node_installed():
-    """Verifica se o Node.js está instalado"""
+def check_dependencies():
+    """Verifica se as dependências estão instaladas"""
     try:
-        result = subprocess.run(['node', '--version'], capture_output=True, text=True)
-        if result.returncode == 0:
-            print(f"✅ Node.js {result.stdout.strip()}")
-            return True
-    except FileNotFoundError:
-        pass
-    print("❌ Erro: Node.js não encontrado")
-    print("   Instale em: https://nodejs.org/")
-    return False
-
-def install_python_dependencies():
-    """Instala as dependências Python"""
-    print("\n📦 Instalando dependências Python...")
-    try:
-        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'], check=True)
-        print("✅ Dependências Python instaladas")
+        import flask
+        import flask_cors
         return True
-    except subprocess.CalledProcessError:
-        print("❌ Erro ao instalar dependências Python")
-        return False
-
-def install_node_dependencies():
-    """Instala as dependências Node.js"""
-    print("\n📦 Instalando dependências Node.js...")
-    try:
-        subprocess.run(['npm', 'install'], check=True)
-        print("✅ Dependências Node.js instaladas")
+    except ImportError:
+        print("📦 Instalando dependências Python...")
+        subprocess.run([sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'])
         return True
-    except subprocess.CalledProcessError:
-        print("❌ Erro ao instalar dependências Node.js")
-        return False
 
-def build_frontend():
-    """Faz o build do frontend React"""
-    print("\n🏗️  Buildando frontend...")
-    try:
-        subprocess.run(['npm', 'run', 'build'], check=True)
-        print("✅ Frontend buildado com sucesso")
-        return True
-    except subprocess.CalledProcessError:
-        print("❌ Erro ao buildar frontend")
-        return False
-
-def start_server(port=8080):
-    """Inicia o servidor Flask"""
-    print(f"\n🚀 Iniciando servidor na porta {port}...")
-    print(f"📡 Acesse: http://localhost:{port}")
-    print(f"🌐 Rede local: http://[SEU-IP]:{port}")
-    print(f"💾 Dados salvos em: data.json")
-    print(f"🛑 Pressione Ctrl+C para parar")
-    print()
-    
-    # Abre o navegador após 2 segundos
-    def open_browser():
-        time.sleep(2)
-        webbrowser.open(f'http://localhost:{port}')
-    
-    import threading
-    threading.Thread(target=open_browser, daemon=True).start()
-    
-    # Inicia o servidor
-    os.environ['PORT'] = str(port)
-    from server import app
-    app.run(host='0.0.0.0', port=port, debug=False)
+def open_browser():
+    """Abre o navegador após 2 segundos"""
+    time.sleep(2)
+    webbrowser.open('http://localhost:8080')
 
 def main():
-    """Função principal"""
-    print_header()
+    print("=" * 60)
+    print("  🏦 KOINONIA FINANCE - Iniciando...")
+    print("=" * 60)
+    print()
     
-    # Verifica pré-requisitos
-    print("🔍 Verificando pré-requisitos...")
-    if not check_python_version():
+    # Verifica dependências
+    if not check_dependencies():
+        print("❌ Erro ao instalar dependências")
         sys.exit(1)
     
-    if not check_node_installed():
+    # Verifica e faz build
+    if not check_and_build():
+        print("❌ Erro no build do frontend")
         sys.exit(1)
     
-    # Verifica se é primeira execução
-    node_modules_exists = Path('node_modules').exists()
-    data_file_exists = Path('data.json').exists()
-    dist_exists = Path('dist').exists()
+    print()
+    print("🚀 Iniciando servidor...")
+    print("📡 Acesse: http://localhost:8080")
+    print("💾 Dados salvos em: data.json")
+    print("🛑 Pressione Ctrl+C para parar")
+    print()
     
-    if not node_modules_exists or not data_file_exists or not dist_exists:
-        print("\n📋 Primeira execução detectada - preparando ambiente...")
-        
-        # Instala dependências Python
-        if not install_python_dependencies():
-            sys.exit(1)
-        
-        # Instala dependências Node.js
-        if not install_node_dependencies():
-            sys.exit(1)
-        
-        # Builda o frontend
-        if not build_frontend():
-            sys.exit(1)
-        
-        print("\n✅ Ambiente preparado com sucesso!")
-    else:
-        print("\n✅ Ambiente já preparado")
+    # Abre o navegador em thread separada
+    threading.Thread(target=open_browser, daemon=True).start()
     
-    # Pergunta se quer rebuildar
-    print("\n🔄 Deseja rebuildar o frontend? (s/n)")
-    response = input().strip().lower()
-    if response == 's':
-        if not build_frontend():
-            print("⚠️  Erro ao rebuildar, continuando com versão atual...")
-    
-    # Inicia o servidor
-    print("\n" + "=" * 70)
-    start_server()
+    # Importa e inicia o servidor
+    from server import app
+    app.run(host='0.0.0.0', port=8080, debug=False)
 
 if __name__ == '__main__':
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n👋 Servidor encerrado. Até logo!")
+        print("\n\n👋 Servidor encerrado!")
         sys.exit(0)
-    except Exception as e:
-        print(f"\n❌ Erro inesperado: {e}")
-        sys.exit(1)
