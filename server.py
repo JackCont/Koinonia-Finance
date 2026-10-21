@@ -2,47 +2,11 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 import os
-import subprocess
 from datetime import datetime
 
 # Obter o diretório base do script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DIST_DIR = os.path.join(BASE_DIR, 'dist')
-
-def check_and_build():
-    """Verifica se o frontend está buildado e faz o build se necessário"""
-    index_path = os.path.join(DIST_DIR, 'index.html')
-    
-    if not os.path.exists(index_path):
-        print("⚠️  Frontend não encontrado. Fazendo build automático...")
-        print()
-        
-        # Verifica se node_modules existe
-        if not os.path.exists(os.path.join(BASE_DIR, 'node_modules')):
-            print("📦 Instalando dependências Node.js...")
-            result = subprocess.run(['npm', 'install'], cwd=BASE_DIR, capture_output=True, text=True)
-            if result.returncode != 0:
-                print(f"❌ Erro ao instalar dependências: {result.stderr}")
-                return False
-            print("✅ Dependências instaladas")
-            print()
-        
-        # Faz o build
-        print("🏗️  Buildando frontend...")
-        result = subprocess.run(['npm', 'run', 'build'], cwd=BASE_DIR, capture_output=True, text=True)
-        if result.returncode != 0:
-            print(f"❌ Erro ao buildar frontend: {result.stderr}")
-            return False
-        
-        print("✅ Frontend buildado com sucesso")
-        print()
-    
-    return True
-
-# Verifica e builda o frontend antes de iniciar o servidor
-if not check_and_build():
-    print("❌ Erro ao preparar o frontend. Verifique os logs acima.")
-    exit(1)
 
 app = Flask(__name__, static_folder=DIST_DIR, static_url_path='')
 CORS(app)
@@ -67,23 +31,37 @@ def save_data(data):
 @app.route('/')
 def index():
     """Serve o frontend React"""
-    return send_from_directory(DIST_DIR, 'index.html')
+    index_path = os.path.join(DIST_DIR, 'index.html')
+    if os.path.exists(index_path):
+        return send_from_directory(DIST_DIR, 'index.html')
+    else:
+        return """
+        <html>
+        <head><title>Koinonia Finance - Erro</title></head>
+        <body style="font-family: Arial, sans-serif; padding: 40px; max-width: 600px; margin: 0 auto;">
+            <h1>⚠️ Frontend não encontrado</h1>
+            <p>A pasta <code>dist/</code> não existe ou está vazia.</p>
+            <p><strong>Para resolver:</strong></p>
+            <ol>
+                <li>Abra o terminal na pasta do projeto</li>
+                <li>Execute: <code>npm run build</code></li>
+                <li>Depois execute: <code>python server.py</code></li>
+            </ol>
+            <p><strong>Ou use o script automático:</strong></p>
+            <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px;">python start.py</pre>
+        </body>
+        </html>
+        """, 404
 
 @app.route('/assets/<path:path>')
 def serve_assets(path):
     """Serve arquivos de assets"""
-    assets_dir = os.path.join(DIST_DIR, 'assets')
-    if os.path.exists(os.path.join(assets_dir, path)):
-        return send_from_directory(assets_dir, path)
-    return "Asset não encontrado", 404
+    return send_from_directory(os.path.join(DIST_DIR, 'assets'), path)
 
 @app.route('/<path:path>')
 def static_files(path):
     """Serve arquivos estáticos do frontend"""
-    file_path = os.path.join(DIST_DIR, path)
-    if os.path.exists(file_path):
-        return send_from_directory(DIST_DIR, path)
-    return "Arquivo não encontrado", 404
+    return send_from_directory(DIST_DIR, path)
 
 @app.route('/api/health', methods=['GET'])
 def health():
@@ -114,7 +92,7 @@ def sync():
             return jsonify({'status': 'error', 'message': 'Missing required fields'}), 400
         
         # Inicializar entidade se não existir
-        if entity not in data:
+        if entity not in 
             data[entity] = {}
         
         # Processar operação
@@ -184,8 +162,7 @@ def get_all_data():
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 3000))
-    print(f"🏦 Koinonia Finance - Gestão Financeira para Igrejas Evangélicas")
-    print(f"🚀 Servidor Local Iniciado")
+    print(f"🏦 Koinonia Finance - Servidor Local")
     print(f"📡 Acessar: http://localhost:{port}")
     print(f"💾 Dados salvos em: {DATA_FILE}")
     print(f"🛑 Pressione Ctrl+C para parar")
