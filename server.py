@@ -32,16 +32,19 @@ def save_data(data):
 def index():
     """Serve o frontend React"""
     # Verifica se a pasta dist existe e tem o index.html
-    if os.path.exists(os.path.join(DIST_DIR, 'index.html')):
+    index_path = os.path.join(DIST_DIR, 'index.html')
+    if os.path.exists(index_path):
         return send_from_directory(DIST_DIR, 'index.html')
     else:
         # Se não existir, retorna mensagem de erro
-        return """
+        return f"""
         <html>
         <head><title>Erro - Koinonia Finance</title></head>
         <body style="font-family: Arial, sans-serif; padding: 40px;">
             <h1>⚠️ Frontend não encontrado</h1>
             <p>A pasta <code>dist/</code> não existe ou está vazia.</p>
+            <p><strong>Diretório esperado:</strong> {DIST_DIR}</p>
+            <p><strong>Arquivo esperado:</strong> {index_path}</p>
             <p>Execute o comando abaixo para buildar o frontend:</p>
             <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px;">npm run build</pre>
             <p>Depois reinicie o servidor:</p>
@@ -53,12 +56,18 @@ def index():
 @app.route('/assets/<path:path>')
 def serve_assets(path):
     """Serve arquivos de assets"""
-    return send_from_directory(os.path.join(DIST_DIR, 'assets'), path)
+    assets_dir = os.path.join(DIST_DIR, 'assets')
+    if os.path.exists(os.path.join(assets_dir, path)):
+        return send_from_directory(assets_dir, path)
+    return "Asset não encontrado", 404
 
 @app.route('/<path:path>')
 def static_files(path):
     """Serve arquivos estáticos do frontend"""
-    return send_from_directory(DIST_DIR, path)
+    file_path = os.path.join(DIST_DIR, path)
+    if os.path.exists(file_path):
+        return send_from_directory(DIST_DIR, path)
+    return "Arquivo não encontrado", 404
 
 @app.route('/api/health', methods=['GET'])
 def health():
