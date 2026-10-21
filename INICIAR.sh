@@ -25,7 +25,7 @@ fi
 echo "✅ Node.js encontrado"
 echo ""
 
-# Executa o script de inicialização
-echo "🚀 Iniciando sistema automático..."
+# Executa o script de inicialização com auto-build
+echo "🚀 Iniciando servidor com auto-build..."
 echo ""
-python3 start.py
+python3 run.py

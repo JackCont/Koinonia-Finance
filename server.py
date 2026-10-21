@@ -2,11 +2,47 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import json
 import os
+import subprocess
 from datetime import datetime
 
 # Obter o diretório base do script
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DIST_DIR = os.path.join(BASE_DIR, 'dist')
+
+def check_and_build():
+    """Verifica se o frontend está buildado e faz o build se necessário"""
+    index_path = os.path.join(DIST_DIR, 'index.html')
+    
+    if not os.path.exists(index_path):
+        print("⚠️  Frontend não encontrado. Fazendo build automático...")
+        print()
+        
+        # Verifica se node_modules existe
+        if not os.path.exists(os.path.join(BASE_DIR, 'node_modules')):
+            print("📦 Instalando dependências Node.js...")
+            result = subprocess.run(['npm', 'install'], cwd=BASE_DIR, capture_output=True, text=True)
+            if result.returncode != 0:
+                print(f"❌ Erro ao instalar dependências: {result.stderr}")
+                return False
+            print("✅ Dependências instaladas")
+            print()
+        
+        # Faz o build
+        print("🏗️  Buildando frontend...")
+        result = subprocess.run(['npm', 'run', 'build'], cwd=BASE_DIR, capture_output=True, text=True)
+        if result.returncode != 0:
+            print(f"❌ Erro ao buildar frontend: {result.stderr}")
+            return False
+        
+        print("✅ Frontend buildado com sucesso")
+        print()
+    
+    return True
+
+# Verifica e builda o frontend antes de iniciar o servidor
+if not check_and_build():
+    print("❌ Erro ao preparar o frontend. Verifique os logs acima.")
+    exit(1)
 
 app = Flask(__name__, static_folder=DIST_DIR, static_url_path='')
 CORS(app)
@@ -31,27 +67,7 @@ def save_data(data):
 @app.route('/')
 def index():
     """Serve o frontend React"""
-    # Verifica se a pasta dist existe e tem o index.html
-    index_path = os.path.join(DIST_DIR, 'index.html')
-    if os.path.exists(index_path):
-        return send_from_directory(DIST_DIR, 'index.html')
-    else:
-        # Se não existir, retorna mensagem de erro
-        return f"""
-        <html>
-        <head><title>Erro - Koinonia Finance</title></head>
-        <body style="font-family: Arial, sans-serif; padding: 40px;">
-            <h1>⚠️ Frontend não encontrado</h1>
-            <p>A pasta <code>dist/</code> não existe ou está vazia.</p>
-            <p><strong>Diretório esperado:</strong> {DIST_DIR}</p>
-            <p><strong>Arquivo esperado:</strong> {index_path}</p>
-            <p>Execute o comando abaixo para buildar o frontend:</p>
-            <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px;">npm run build</pre>
-            <p>Depois reinicie o servidor:</p>
-            <pre style="background: #f4f4f4; padding: 15px; border-radius: 5px;">python server.py</pre>
-        </body>
-        </html>
-        """, 404
+    return send_from_directory(DIST_DIR, 'index.html')
 
 @app.route('/assets/<path:path>')
 def serve_assets(path):

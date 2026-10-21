@@ -5,39 +5,60 @@ Versão 1.3 | Outubro 2026
 
 ---
 
-## 🚀 Início Rápido
+## 🚀 Início Rápido (SIMPLES!)
 
-### Windows
+### Apenas execute:
 ```bash
-# Clique duas vezes em INICIAR.bat
+python server.py
 ```
 
-### Linux/Mac
-```bash
-chmod +x INICIAR.sh
-./INICIAR.sh
-```
+**Pronto!** O sistema faz tudo automaticamente:
+- ✅ Verifica dependências
+- ✅ Builda o frontend se necessário
+- ✅ Inicia o servidor na porta 3000
+- ✅ Abre o navegador automaticamente
 
-### Manual
-```bash
-# 1. Instalar dependências Python
-pip install -r requirements.txt
+---
 
-# 2. Instalar dependências Node.js
-npm install
+## 🎯 Acesso ao Aplicativo
 
-# 3. Buildar frontend
-npm run build
+Após iniciar, acesse:
+- **URL:** http://localhost:3000
+- **Login:** admin / admin123
 
-# 4. Iniciar servidor
-python iniciar.py
-```
+---
 
-**Acesse:** http://localhost:8080
+## 📚 Documentação
 
-**Login padrão:**
-- Usuário: `admin`
-- Senha: `admin123`
+- [SOLUCAO_DEFINITIVA.md](SOLUCAO_DEFINITIVA.md) - Solução completa de problemas
+- [COMO_INICIAR.md](COMO_INICIAR.md) - Guia detalhado
+- [RELATÓRIO_DE_DESENVOLVIMENTO.md](RELATÓRIO_DE_DESENVOLVIMENTO.md) - Histórico completo
+
+---
+
+## 🎯 Funcionalidades
+
+- ✅ Controle de dízimos e ofertas
+- ✅ Gestão de despesas por categoria
+- ✅ Remessa mensal (modelo oficial)
+- ✅ Fluxo de caixa (regime de caixa e competência)
+- ✅ Sistema de provisões (reserva de emergência)
+- ✅ Valores fixos (Missões R$ 850, Jubilados R$ 750)
+- ✅ Cadastro de membros com fotos
+- ✅ Gestão de congregações e pastores
+- ✅ Lançamentos em lote por culto
+- ✅ Gestão de membros em lote (CSV)
+- ✅ Relatórios completos
+- ✅ Sistema de autenticação com perfis
+- ✅ Personalização de cores (6 temas)
+
+---
+
+**Koinonia Finance** - Gestão Financeira Eclesiástica Moderna
+
+**Versão:** 1.3  
+**Data:** Outubro 2026  
+**Status:** ✅ Pronto para uso local
 
 ---
 
